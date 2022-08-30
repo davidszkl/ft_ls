@@ -1,5 +1,5 @@
 NAME	= ft_ls
-CC		= gcc -Wall -Wextra -Werror
+CC		= gcc -Wall -Wextra -Werror -g
 SRCDIR	= src
 INCDIR	= inc
 LIBDIR  = inc/Libft
