@@ -20,7 +20,7 @@ int	ft_putstr(char *str)
 	return (n);
 }
 
-int	ft_putnbr(long int n)
+int	putnbr(long int n)
 {
 	long int	nbr;
 	int			j;
@@ -40,14 +40,14 @@ int	ft_putnbr(long int n)
 	}
 	while (n > 9)
 	{
-		ft_putnbr(n / 10);
+		putnbr(n / 10);
 		n %= 10;
 	}
 	ft_putchar(n + '0');
 	return (j);
 }
 
-int	ft_puthex(unsigned long int n, char *str)
+int	puthex(unsigned long int n, char *str)
 {
 	unsigned long int	nbr;
 	int					j;
@@ -61,14 +61,14 @@ int	ft_puthex(unsigned long int n, char *str)
 	}
 	while (n > 15)
 	{
-		ft_puthex(n / 16, str);
+		puthex(n / 16, str);
 		n %= 16;
 	}
 	ft_putchar(str[n]);
 	return (j);
 }
 
-int	ft_putpointer(unsigned long int n, char *str)
+int	putpointer(unsigned long int n, char *str)
 {
 	unsigned long int	nbr;
 	int					j;
@@ -83,14 +83,14 @@ int	ft_putpointer(unsigned long int n, char *str)
 	}
 	while (n > 15)
 	{
-		ft_puthex(n / 16, str);
+		puthex(n / 16, str);
 		n %= 16;
 	}
 	ft_putchar(str[n]);
 	return (j);
 }
 
-int	ft_putuint(unsigned long int n)
+int	putuint(unsigned long int n)
 {
 	unsigned long int	nbr;
 	int				j;
@@ -104,7 +104,7 @@ int	ft_putuint(unsigned long int n)
 	}
 	while (n > 9)
 	{
-		ft_putnbr(n / 10);
+		putnbr(n / 10);
 		n %= 10;
 	}
 	ft_putchar(n + '0');

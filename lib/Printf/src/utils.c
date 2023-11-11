@@ -1,4 +1,5 @@
-#include <limits.h>
+# include <limits.h>
+# include <unistd.h>
 
 int	ft_atoi(const char *str)
 {
@@ -33,4 +34,17 @@ int ft_strlen(const char* str) {
 
 int ft_isdigit(const char c) {
     return c >= '0' && c <= '9';
+}
+
+size_t abs_value(long int nbr) {
+    return nbr < 0 ? -nbr : nbr;
+}
+
+char* ft_memcpy(char* dst, char* src, size_t size) {
+    if (!dst || !src)
+        return NULL;
+    while (*src && size--) {
+        *dst++ = *src++;
+    }
+    return dst;
 }

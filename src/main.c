@@ -12,9 +12,12 @@ int main(int ac, char **av) {
 
     // while ((entry = readdir(dir)) != NULL) {
     // }
-    printf("'%5c%c'\n", 'a', 'b');
-    printf("'%d'\n", add(1, 2));
-    ft_printf("'%5c%c'\n", 'a', 'b');
+    size_t rval1 = ft_printf("abcdefghijklmnopqrstuvwxyz\n");
+    size_t rval2 = printf("abcdefghijklmnopqrstuvwxyz\n");
+    printf("rval1 = %ld\n", rval1);
+    printf("rval2 = %ld\n", rval2);
+    // printf("'%d'\n", add(1, 2));
+    // ft_printf("'%5c%c'\n", 'a', 'b');
     //  '    a'
     return 1;
 }
