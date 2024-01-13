@@ -1,0 +1,32 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+../lib/Printf/inc/printf.h
+stdlib.h
+-
+unistd.h
+-
+stdarg.h
+-
+stdio.h
+-
+
+/home/odoo/david/ft_ls/lib/Printf/src/output.c
+printf.h
+/home/odoo/david/ft_ls/lib/Printf/src/printf.h
+
+/home/odoo/david/ft_ls/lib/Printf/src/printf.c
+printf.h
+/home/odoo/david/ft_ls/lib/Printf/src/printf.h
+
+/home/odoo/david/ft_ls/lib/Printf/src/utils.c
+limits.h
+-
+unistd.h
+-
+

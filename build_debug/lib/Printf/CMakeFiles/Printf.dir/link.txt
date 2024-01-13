@@ -1,0 +1,2 @@
+/usr/bin/ar qc libPrintf.a  CMakeFiles/Printf.dir/src/printf.c.o CMakeFiles/Printf.dir/src/output.c.o CMakeFiles/Printf.dir/src/utils.c.o
+/usr/bin/ranlib libPrintf.a

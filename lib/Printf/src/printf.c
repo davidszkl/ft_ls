@@ -2,27 +2,10 @@
 
 # define BUFFER_SIZE 10
 
-
-int	ft_printf(const char *str, ...) {
-	va_list	list;
-    
-    buffer_s* buffer = init_buffer();
-    
-    va_start(list, str);
-	buffer->bytes = format_string(str, list, buffer, BUFFER_SIZE);
-	va_end(list);
-
-    ft_putstr(buffer->bytes);
-    int len = buffer->size;
-    free(buffer->bytes);
-    free(buffer);
-	return (len);
-}
-
 buffer_s* init_buffer() {
     buffer_s* buffer = (buffer_s*)malloc(sizeof(buffer_s));
     if (!buffer)
-        return -1;
+        return NULL;
     buffer->bytes = malloc(sizeof(char) * BUFFER_SIZE);
     if (!buffer->bytes) {
         free(buffer);
@@ -33,130 +16,125 @@ buffer_s* init_buffer() {
     return buffer;
 }
 
-size_t get_token_length(const char* str) {
-    size_t n = 1;
-    if (str[n] == '-')
-        n++;
-    while (str[n] && ft_isdigit(str[n]))
-        n++;
-    return n;
-}
-
-long int get_padding(const char* str) {
-    if (!str[0])
-        return 0;
-    int rval = ft_atoi(str);
-    return rval;
-}
-
-size_t compute_padding(size_t size, size_t padding) {
-    if (size > padding)
-        return size;
-    else
-        return padding;
-}
-
-char* get_flags(token_s* token, char* str) {
+int _get_flags(token_s* token, const char* str) {
+    int rval = 0;
     while (*str) {
         if (*str == '0')
             token->padding = '0';
         else if (*str == '-')
-            token->flags |= FLAG_LEFT_PAD;
-        else
-            return str;
+            token->flags |= FLAG_JUSTIFY_LEFT;
+        else if (ft_isdigit(*str))
+            return rval;
+        else // unknown flag
+            return -1;
         str++;
+        rval++;
     }
-    return NULL;
+    return -1;
 }
 
-char* get_width(token_s* token, char* str) {
-    size_t width = (size_t)ft_atoi(str);
+int _get_width(token_s* token, const char* str) {
+    int width = ft_atoi(str);
+    int rval = 0;
     if (width < 0)
-        return NULL;
+        return -1;
     token->width = width;
-    return str;
+    str++; // first digit of the width
+    rval++;
+    while (width > 9) {
+        rval++;
+        str++;
+        width /= 10;
+    }
+    return rval;
 }
 
-char* get_specifier(token_s* token, char* str) {
-    if (*str != '%' && *str != 'd' && *str != 'i' && *str != 'c' && *str != 's' && *str != 'x' && *str != 'X' && *str != 'p')
-        return NULL;
-    token->specifier = *str++;
-    return str;
+int _get_specifier(token_s* token, const char* str) {
+    if (!*str)
+        return -1;
+    token->specifier = *str;
+    return 1;
 }
 
-token_s* get_token(char* str) {
-    char* tmp = str;
-    if (*str != '%')
+char* _get_token_string(const char* str) {
+    const char* tmp = str;
+    size_t len = 1; // skip the first '%'
+    while (tmp[len] && !ft_strchr(tmp[len], "%dicsxXp"))
+        len++;
+    if (!tmp[len])
         return NULL;
+    return ft_strdup(str, len + 1);
+}
+
+token_s* init_token(const char* token_str) {
+    const char* tmp = token_str;
+    int jump = 0;
     token_s* token = (token_s*)malloc(sizeof(token_s));
     if (!token)
         return NULL;
-    str = get_flags(&token, str);
-    str = get_width(&token, str);
-    str = get_specifier(&token, str);
-    token->size = (str - tmp) / sizeof(char);
+    token->padding = ' '; // default value
+    token_str++; // skip the '%'
+    jump = _get_flags(token, token_str);
+    if (jump < 0) {
+        free(token);
+        return NULL;
+    }
+    token_str += jump;
+    jump = _get_width(token, token_str);
+    if (jump < 0) {
+        free(token);
+        return NULL;
+    }
+    token_str += jump;
+    jump = _get_specifier(token, token_str);
+    if (jump < 0) {
+        free(token);
+        return NULL;
+    }
+    token_str += jump;
+    token->size = (token_str - tmp) / sizeof(char);
     return token;
 }
 
-//"'%5c%c'\n"
-char* format_string(const char* str, va_list list, buffer_s* buffer, size_t buffer_size) {
-    // read through string, write characters to buffer until size, if size is reached, re-allocate. Stop at '%' character and handle.
-    size_t curr_size = 0;
-    while (*str) {
-        if (*str == '%') {
-            token_s *token = get_token(str);
-            str += write_token(buffer, token, list);
-        } else {
-            write_to_buffer(buffer, str++, (size_t)1);
-        }
-    }
-    buffer->bytes[buffer->size] = '\0';
-    return buffer->bytes;
+token_s* get_token(const char* str) {
+    char* token_str = _get_token_string(str);
+    if (!token_str)
+        return NULL;
+    token_s* token = init_token(token_str);
+    free(token_str);
+    return token;
 }
 
-size_t write_token(buffer_s* buffer, token_s* token, va_list list) {
-    char *str_to_write = get_str_to_write(token->specifier, list);
-    size_t len = (size_t)ft_strlen(str_to_write);
-    
-    if (write_to_buffer(buffer, str_to_write, len) < 0)
-        return NULL; 
-    return len;
-}
-
-int write_to_buffer(buffer_s* buffer, const char* str, size_t len) {
-    if (buffer->size + len > buffer->capacity)
-        if (!resize_buffer(buffer, len))
-            return -1;
-    ft_memcpy(buffer->bytes + buffer->size, str, len);
-    buffer->size += len;
-    return 0;
-}
-
-char* get_str_to_write(char specifier, va_list list) {
+const char* get_str_to_write(char specifier, va_list list) {
     char* str_to_write = NULL;
     if (specifier == 'c') {
-        char c = va_arg(list, char);
-        str_to_write = malloc(sizeof(char));
+        char c = va_arg(list, int);
+        str_to_write = malloc(sizeof(char) * (1 + 1));
         if (!str_to_write)
             return NULL;
-        *str_to_write = c;
+        str_to_write[0] = c;
+        str_to_write[1] = '\0';
     }
     else if (specifier == '%') {
-        str_to_write = malloc(sizeof(char));
+        str_to_write = malloc(sizeof(char) * (1 + 1));
         if (!str_to_write)
             return NULL;
-        *str_to_write = '%';
+        str_to_write = "%\0";
     }
     else if (specifier == 's') {
         char* str = va_arg(list, char*);
-        str_to_write = malloc(sizeof(char) * ft_strlen(str));
+        str_to_write = ft_strdup(str, -1);
         if (!str_to_write)
             return NULL;
-        *str_to_write = str;
     }
+    else if (specifier == 'd' || specifier == 'i') {
+        int str = va_arg(list, int);
+        str_to_write = ft_itoa(str);
+        if (!str_to_write)
+            return NULL;
+    }
+
     return str_to_write;
-    // else if (token == 'd' || token == 'i')
-	// 	return measure_int(va_arg(list, int));
 	// else if (token == 'u')
     //     return measure_unsigned(va_arg(list, unsigned int));
 	// else if (token == 'x')
@@ -176,39 +154,93 @@ char* resize_buffer(buffer_s* buffer, size_t required_size) {
     ft_memcpy(new_buffer, buffer->bytes, buffer->size);
     free(buffer->bytes);
     buffer->bytes = new_buffer;
-    buffer->size = new_size;
+    buffer->capacity = new_size;
     return new_buffer;
 }
 
-size_t write_formated(char* buffer, va_list list, char token, int padding) {
-    if (token == 'c') {
-        int i = 1;
-        size_t val = abs_value(padding);
-        while(i < val)
-            buffer[i++] = ' ';
-        buffer[padding < 0 ? 0 : i] = va_arg(list, int);
-        return i > 1 ? i : 2;
+int write_to_buffer(buffer_s* buffer, const char* str, size_t len) {
+    if (buffer->size + len > buffer->capacity)
+        if (!resize_buffer(buffer, len)) return -1;
+    ft_memcpy(buffer->bytes + buffer->size, str, len);
+    buffer->size += len;
+    return 0;
+}
+
+const char* get_sized_str(const char* str, const token_s* token){
+    size_t strlen = ft_strlen(str);
+    size_t width = strlen > token->width ? strlen : token->width;
+    char* sized_str = malloc((width + 1) * sizeof(char));
+    if (!sized_str)
+        return NULL;
+
+    char* rval = sized_str;
+    int step = token->flags && FLAG_JUSTIFY_LEFT ? 1 : -1;
+    const char* begin = token->flags && FLAG_JUSTIFY_LEFT ? str : str + strlen - 1;
+    sized_str = token->flags && FLAG_JUSTIFY_LEFT ? sized_str : sized_str + width - 1;
+    while (*begin && width--) {
+        *sized_str = *begin;
+        begin += step;
+        sized_str += step;
     }
-    if (token == '%') {
-        int i = -1;
-        size_t val = abs_value(padding);
-        for (; i < val; i++)
-            buffer[i] = ' ';
-        
-        buffer[padding < 0 ? 0 : i] = '%';
-        return i > 1 ? i : 2;
+    while (width--) {
+        *sized_str = token->padding;
+        sized_str += step;
     }
-    else if (token == 's')
-        return ft_strlen(va_arg(list, char*));
-    else if (token == 'd' || token == 'i')
-		return measure_int(va_arg(list, int));
-	else if (token == 'u')
-        return measure_unsigned(va_arg(list, unsigned int));
-	else if (token == 'x')
-		return measure_hex(va_arg(list, unsigned int));
-	else if (token == 'X')
-		return measure_hex(va_arg(list, unsigned int));
-	else if (token == 'p')
-		return measure_hex(va_arg(list, unsigned long int)) + 2;
-    return 0; 
+    rval[width] = '\0';
+
+    return rval;
+}
+
+int write_token(buffer_s* buffer, token_s* token, va_list list) {
+    const char *str_to_write = get_str_to_write(token->specifier, list);
+    if (!str_to_write)
+        return -1;
+    const char *sized_str = get_sized_str(str_to_write, token);
+    free((char *)str_to_write);
+    if (!sized_str)
+        return -1;
+    size_t len = (size_t)ft_strlen(sized_str);
+    
+    if (write_to_buffer(buffer, sized_str, len) < 0)
+        return -1;
+    return len;
+}
+
+//"'%5c%c'\n"
+char* format_string(const char* str, va_list list, buffer_s* buffer) {
+    // read through string, write characters to buffer until size, if size is reached, re-allocate. Stop at '%' character and handle.
+    while (*str) {
+        if (*str == '%') {
+            token_s *token = get_token(str);
+            if (!token)
+                return NULL;                
+            if (write_token(buffer, token, list) < 0) {
+                free(token);
+                return NULL;
+            }
+            str += token->size;
+        } else {
+            write_to_buffer(buffer, str++, (size_t)1);
+        }
+    }
+    buffer->bytes[buffer->size] = '\0';
+    return buffer->bytes;
+}
+
+int	ft_printf(const char *str, ...) {
+	va_list	list;
+    
+    buffer_s* buffer = init_buffer();
+    
+    va_start(list, str);
+	buffer->bytes = format_string(str, list, buffer);
+    if (!buffer->bytes)
+        return -1;
+	va_end(list);
+
+    ft_putstr(buffer->bytes);
+    int len = buffer->size;
+    free(buffer->bytes);
+    free(buffer);
+	return (len);
 }

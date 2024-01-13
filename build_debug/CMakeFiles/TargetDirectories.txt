@@ -1,0 +1,12 @@
+/home/odoo/david/ft_ls/build_debug/CMakeFiles/rebuild_cache.dir
+/home/odoo/david/ft_ls/build_debug/CMakeFiles/edit_cache.dir
+/home/odoo/david/ft_ls/build_debug/CMakeFiles/Ft_ls.dir
+/home/odoo/david/ft_ls/build_debug/src/CMakeFiles/rebuild_cache.dir
+/home/odoo/david/ft_ls/build_debug/src/CMakeFiles/edit_cache.dir
+/home/odoo/david/ft_ls/build_debug/lib/CMakeFiles/rebuild_cache.dir
+/home/odoo/david/ft_ls/build_debug/lib/CMakeFiles/edit_cache.dir
+/home/odoo/david/ft_ls/build_debug/lib/Printf/CMakeFiles/rebuild_cache.dir
+/home/odoo/david/ft_ls/build_debug/lib/Printf/CMakeFiles/edit_cache.dir
+/home/odoo/david/ft_ls/build_debug/lib/Printf/CMakeFiles/Printf.dir
+/home/odoo/david/ft_ls/build_debug/lib/Printf/src/CMakeFiles/rebuild_cache.dir
+/home/odoo/david/ft_ls/build_debug/lib/Printf/src/CMakeFiles/edit_cache.dir

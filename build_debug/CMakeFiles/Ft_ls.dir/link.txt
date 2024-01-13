@@ -1,0 +1,1 @@
+/usr/bin/cc -g   CMakeFiles/Ft_ls.dir/src/main.c.o CMakeFiles/Ft_ls.dir/src/adder.c.o  -o ../Ft_ls  lib/Printf/libPrintf.a 
