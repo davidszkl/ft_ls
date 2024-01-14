@@ -1,16 +1,22 @@
 # include "printf.h"
 
 # define BUFFER_SIZE 10
+# define SUPPORTED_FLAGS "%dicsxXp"
+
+char* free_buffer(buffer_s* buffer) {
+    free(buffer->bytes);
+    free(buffer);
+    return NULL;
+}
 
 buffer_s* init_buffer() {
     buffer_s* buffer = (buffer_s*)malloc(sizeof(buffer_s));
     if (!buffer)
         return NULL;
-    buffer->bytes = malloc(sizeof(char) * BUFFER_SIZE);
-    if (!buffer->bytes) {
-        free(buffer);
-        return NULL;
-    }
+    buffer->bytes = malloc(sizeof(char) * BUFFER_SIZE + 1);
+    if (!buffer->bytes)
+        return ((buffer_s*)free_buffer(buffer));
+    bzero(buffer->bytes, BUFFER_SIZE + 1);
     buffer->capacity = BUFFER_SIZE;
     buffer->size = 0;
     return buffer;
@@ -23,7 +29,7 @@ int _get_flags(token_s* token, const char* str) {
             token->padding = '0';
         else if (*str == '-')
             token->flags |= FLAG_JUSTIFY_LEFT;
-        else if (ft_isdigit(*str))
+        else if (ft_isdigit(*str) || ft_strchr(*str, SUPPORTED_FLAGS))
             return rval;
         else // unknown flag
             return -1;
@@ -34,6 +40,10 @@ int _get_flags(token_s* token, const char* str) {
 }
 
 int _get_width(token_s* token, const char* str) {
+    if (ft_strchr(*str, SUPPORTED_FLAGS)) {
+        token->width = 0;
+        return 0;
+    }
     int width = ft_atoi(str);
     int rval = 0;
     if (width < 0)
@@ -59,7 +69,7 @@ int _get_specifier(token_s* token, const char* str) {
 char* _get_token_string(const char* str) {
     const char* tmp = str;
     size_t len = 1; // skip the first '%'
-    while (tmp[len] && !ft_strchr(tmp[len], "%dicsxXp"))
+    while (tmp[len] && !ft_strchr(tmp[len], SUPPORTED_FLAGS))
         len++;
     if (!tmp[len])
         return NULL;
@@ -72,6 +82,8 @@ token_s* init_token(const char* token_str) {
     token_s* token = (token_s*)malloc(sizeof(token_s));
     if (!token)
         return NULL;
+    bzero(token, sizeof(token_s));
+
     token->padding = ' '; // default value
     token_str++; // skip the '%'
     jump = _get_flags(token, token_str);
@@ -146,15 +158,16 @@ const char* get_str_to_write(char specifier, va_list list) {
 }
 
 char* resize_buffer(buffer_s* buffer, size_t required_size) {
-    size_t new_size = buffer->capacity + required_size + BUFFER_SIZE;
-    char* new_buffer = malloc(sizeof(char) * new_size);
+    size_t new_capacity = buffer->capacity + required_size + BUFFER_SIZE + 1;
+    char* new_buffer = malloc(sizeof(char) * new_capacity);
     if (!new_buffer)
         return NULL;
+    bzero(new_buffer, new_capacity);
 
     ft_memcpy(new_buffer, buffer->bytes, buffer->size);
     free(buffer->bytes);
     buffer->bytes = new_buffer;
-    buffer->capacity = new_size;
+    buffer->capacity = new_capacity - 1;
     return new_buffer;
 }
 
@@ -172,21 +185,24 @@ const char* get_sized_str(const char* str, const token_s* token){
     char* sized_str = malloc((width + 1) * sizeof(char));
     if (!sized_str)
         return NULL;
+    bzero(sized_str, width + 1);
 
     char* rval = sized_str;
     int step = token->flags && FLAG_JUSTIFY_LEFT ? 1 : -1;
     const char* begin = token->flags && FLAG_JUSTIFY_LEFT ? str : str + strlen - 1;
     sized_str = token->flags && FLAG_JUSTIFY_LEFT ? sized_str : sized_str + width - 1;
-    while (*begin && width--) {
+    while (strlen) {
         *sized_str = *begin;
         begin += step;
         sized_str += step;
+        strlen--;
+        width--;
     }
-    while (width--) {
+    while (width) {
         *sized_str = token->padding;
         sized_str += step;
+        width--;
     }
-    rval[width] = '\0';
 
     return rval;
 }
@@ -201,8 +217,11 @@ int write_token(buffer_s* buffer, token_s* token, va_list list) {
         return -1;
     size_t len = (size_t)ft_strlen(sized_str);
     
-    if (write_to_buffer(buffer, sized_str, len) < 0)
+    if (write_to_buffer(buffer, sized_str, len) < 0) {
+        free((char *)sized_str);
         return -1;
+    }
+    free((char *)sized_str);
     return len;
 }
 
@@ -213,17 +232,20 @@ char* format_string(const char* str, va_list list, buffer_s* buffer) {
         if (*str == '%') {
             token_s *token = get_token(str);
             if (!token)
-                return NULL;                
+                return NULL;
             if (write_token(buffer, token, list) < 0) {
                 free(token);
                 return NULL;
             }
             str += token->size;
+            free(token);
         } else {
-            write_to_buffer(buffer, str++, (size_t)1);
+            if (write_to_buffer(buffer, str++, (size_t)1) < 0)
+                return NULL;
         }
     }
-    buffer->bytes[buffer->size] = '\0';
+    if (write_to_buffer(buffer, "\0", (size_t)1) < 0)
+        return NULL;
     return buffer->bytes;
 }
 
@@ -234,13 +256,14 @@ int	ft_printf(const char *str, ...) {
     
     va_start(list, str);
 	buffer->bytes = format_string(str, list, buffer);
-    if (!buffer->bytes)
+    if (!buffer->bytes) {
+        free_buffer(buffer);
         return -1;
+    }
 	va_end(list);
 
-    ft_putstr(buffer->bytes);
+    write(1, buffer->bytes, buffer->size);
     int len = buffer->size;
-    free(buffer->bytes);
-    free(buffer);
+    free_buffer(buffer);
 	return (len);
 }

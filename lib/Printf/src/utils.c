@@ -73,6 +73,11 @@ char* ft_memcpy(char* dst, const char* src, size_t size) {
     return dst;
 }
 
+void ft_memset(char* mem, char c) {
+    while(*mem)
+        *mem++ = c;
+}
+
 char* ft_strdup(const char* str, int size){
     char* res = NULL;
     if (size < 0) {

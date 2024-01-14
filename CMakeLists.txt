@@ -11,4 +11,3 @@ add_subdirectory(lib)
 
 target_include_directories(${PROJECT_NAME} PRIVATE inc lib/Printf/inc)
 target_link_libraries(${PROJECT_NAME} Printf)
-
