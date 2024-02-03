@@ -1,4 +1,4 @@
-# include "printf.h"
+# include "ft_printf.h"
 
 # define BUFFER_SIZE 10
 # define SUPPORTED_FLAGS "%dicsxXp"

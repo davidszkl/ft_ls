@@ -1,1 +1,1 @@
-target_sources(${PROJECT_NAME} PRIVATE main.c adder.c)
+target_sources(${PROJECT_NAME} PRIVATE main.c utils.c)

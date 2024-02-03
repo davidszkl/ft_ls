@@ -1,4 +1,4 @@
-# include "printf.h"
+# include "ft_printf.h"
 
 int	ft_atoi(const char *str)
 {
@@ -71,11 +71,6 @@ char* ft_memcpy(char* dst, const char* src, size_t size) {
         *dst++ = *src++;
     }
     return dst;
-}
-
-void ft_memset(char* mem, char c) {
-    while(*mem)
-        *mem++ = c;
 }
 
 char* ft_strdup(const char* str, int size){
