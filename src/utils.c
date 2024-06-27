@@ -6,6 +6,16 @@ void ft_memset(void* mem, int c, size_t n) {
         *p++ = c;
 }
 
+void *ft_memcpy(void *dest, const void *source, size_t n) {
+    char* dst = (char*)dest;
+    char* src = (char*)source;
+    while (n--) {
+        *dst++ = *src++;
+    }
+
+    return dest;
+}
+
 int ft_strcmp(const char* str1, const char* str2) {
     if (!str1 || !str2)
         return 1;
