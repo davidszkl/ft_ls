@@ -4,6 +4,8 @@
 # include <dirent.h>
 # include <unistd.h>
 # include <linux/limits.h>
+# include "ft_printf.h"
+# include "utils.h"
 
 // options
 # define OPTION_LONG 1
@@ -26,3 +28,5 @@ typedef struct ft_ls_s {
     int dirs_count;
     options_s options[5];
 } ft_ls_s;
+
+extern ft_ls_s ft_ls;

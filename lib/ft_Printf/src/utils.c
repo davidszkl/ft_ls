@@ -64,14 +64,17 @@ size_t abs_value(long int nbr) {
     return nbr < 0 ? -nbr : nbr;
 }
 
-// void* ft_memcpy(char* dst, const char* src, size_t size) {
-//     if (!dst || !src)
-//         return NULL;
-//     while (*src && size--) {
-//         *dst++ = *src++;
-//     }
-//     return dst;
-// }
+void *ft_memcpy(void *dst, const void *src, size_t n) {
+    if (!dst || !src)
+        return NULL;
+    char* dest = (char*)dst;
+    char* source = (char*)src;
+    while (n--) {
+        *dest++ = *source++;
+    }
+
+    return dst;
+}
 
 char* ft_strdup(const char* str, int size){
     char* res = NULL;

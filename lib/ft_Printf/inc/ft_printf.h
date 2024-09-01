@@ -28,7 +28,7 @@ char* ft_itoa(int nbr);
 int ft_strlen(const char* str);
 int ft_isdigit(const char c);
 size_t abs_value(long int nbr);
-void* ft_memcpy(char* dst, const char* src, size_t size);
+void* ft_memcpy(void *dst, const void *src, size_t n);
 char* ft_strdup(const char* str, int size);
 const char* ft_strchr(const char c, const char* str);
 

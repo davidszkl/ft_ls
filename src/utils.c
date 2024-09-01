@@ -2,18 +2,8 @@
 
 void ft_memset(void* mem, int c, size_t n) {
     unsigned char* p = (unsigned char*) mem; 
-    while(*p && n--)
-        *p++ = c;
-}
-
-void *ft_memcpy(void *dest, const void *source, size_t n) {
-    char* dst = (char*)dest;
-    char* src = (char*)source;
-    while (n--) {
-        *dst++ = *src++;
-    }
-
-    return dest;
+    while(n--)
+        *p++ = (unsigned char)c;
 }
 
 int ft_strcmp(const char* str1, const char* str2) {

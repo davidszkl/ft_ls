@@ -107,25 +107,25 @@ int test_printf() {
     return 0;
 }
 
+ft_ls_s ft_ls = {
+    .options_count = 5,
+    .options = {
+        [0] = { .val = OPTION_LONG, .short_name = 'l', .long_name = NULL, .values = NULL },
+        [1] = { .val = OPTION_RECURSIVE, .short_name = 'R', .long_name = "recursive", .values = NULL },
+        [2] = { .val = OPTION_ALL, .short_name = 'a', .long_name = "all", .values = NULL },
+        [3] = { .val = OPTION_REVERSE_SORT, .short_name = 'r', .long_name = "reverse", .values = NULL },
+        [4] = { .val = OPTION_SORT_TIME, .short_name = 't', .long_name = NULL, .values = NULL }
+    }
+};
+
 int main(int ac, char** av) {
     // test_printf();
-    ft_ls_s ft_ls = {
-        .options_count = 5,
-        .options = {
-            [0] = { .val = OPTION_LONG, .short_name = 'l', .long_name = NULL, .values = NULL },
-            [1] = { .val = OPTION_RECURSIVE, .short_name = 'R', .long_name = "recursive", .values = NULL },
-            [2] = { .val = OPTION_ALL, .short_name = 'a', .long_name = "all", .values = NULL },
-            [3] = { .val = OPTION_REVERSE_SORT, .short_name = 'r', .long_name = "reverse", .values = NULL },
-            [4] = { .val = OPTION_SORT_TIME, .short_name = 't', .long_name = NULL, .values = NULL }
-        }
-    };
- 
-    if (parse_arguments(ac, av, &ft_ls) != 0) {
+    if (parse_arguments(ac, av) != 0) {
         return 1;
     }
 
     for (int i = 0; i < ft_ls.dirs_count; i++) {
-        output(ft_ls.dirs[i], &ft_ls);
+        output(ft_ls.dirs[i]);
     }
     write(1, "\n", 1);
     return 0;

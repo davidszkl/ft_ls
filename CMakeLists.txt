@@ -3,6 +3,7 @@ cmake_minimum_required(VERSION 3.16.3)
 project(ft_ls)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}")
+set(CMAKE_BUILD_TYPE Debug)
 add_compile_options(-Wall -Wextra -Wpedantic)
 add_executable(${PROJECT_NAME})
 
