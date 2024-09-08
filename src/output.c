@@ -25,46 +25,63 @@ static vector_s* make_entry_vector(DIR* dir) {
     return entry_vector;
 }
 
-static void output_print(const vector_s* entry_vector, const char* path) {
+static void output_print(const vector_s* entry_vector, const char* parent_path, int first) {
+    if (!first)
+        write(1, "\n", 1);
     if ((&ft_ls)->selected_options & OPTION_RECURSIVE){
-        ft_printf("%s/:\n", path);
+        ft_printf("%s:\n", parent_path);
     }
     if ((&ft_ls)->selected_options & OPTION_ALL) {
-        ft_printf(". .. ");
+        ft_printf("\n.  ..  ");
     }
     for (size_t i = 0; i < entry_vector->size; i++) {
-        ft_printf("%s ", entry_vector->content[i]->d_name);
+        ft_printf("%s  ", entry_vector->content[i]->d_name);
     }
-    write(1, "\n\n", 2);
+    if (entry_vector->size) {
+        write(1, "\n", 2);
+    }
 }
 
-static vector_s* output_helper(DIR* dir, const char* path) {
+static vector_s* output_helper(DIR* dir, const char* parent_path, int first) {
     vector_s* entry_vector = make_entry_vector(dir);
 
     vector_sort(entry_vector);
 
-    output_print(entry_vector, path);
+    output_print(entry_vector, parent_path, first);
 
     return entry_vector;
 }
 
-void output(DIR* dir, const char* path) {
-    vector_s* entry_vector = output_helper(dir, path);
+int output(DIR* dir, const char* parent_path, int first) {
+    vector_s* entry_vector = output_helper(dir, parent_path, first);
     if (!entry_vector)
-        return;
+        return 1;
 
-    dir_s* directories = get_directories(entry_vector);
+    dir_s* directories = get_directories(entry_vector, parent_path);
     if (!directories) {
         vector_free(entry_vector);
-        return;
+        return 1;
     }
 
-    if ((&ft_ls)->selected_options & OPTION_RECURSIVE) {
+    if (directories->count > 0 && (&ft_ls)->selected_options & OPTION_RECURSIVE) {
+        const char* current_path = NULL;
         size_t i = 0;
-        while (directories[i].dir != NULL) {
-            output(directories[i].dir, directories[i].name);
+        for (size_t i = 0; i < directories->count; i++) {
+            current_path = ft_strjoin_path(parent_path, directories[i].name);
+            if (!current_path) {
+                vector_free(entry_vector);
+                return dir_free(directories, 1);
+            }
+            if (output(directories[i].dir, current_path, 0) != 0) {
+                free((char*)current_path);
+                vector_free(entry_vector);
+                return dir_free(directories, 1);
+            }
             i++;
+            free((char*)current_path);
         }
     }
 
+    vector_free(entry_vector);
+    return dir_free(directories, 0);
 }

@@ -25,13 +25,13 @@ typedef struct options_s {
 typedef struct dir_t {
     DIR* dir;
     char* name;
+    size_t count;
 } dir_s;
 
 typedef struct ft_ls_s {
     int selected_options;
     int options_count;
     dir_s* dirs;
-    int dirs_count;
     options_s options[5];
 } ft_ls_s;
 

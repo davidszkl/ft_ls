@@ -38,3 +38,35 @@ int ft_free(void* ptr, int rval) {
     free(ptr);
     return rval;
 }
+
+
+char* ft_strjoin(const char* str1, const char* str2) {
+    if (!str1 || !str2)
+        return NULL;
+    char* rval = malloc(ft_strlen(str1) + ft_strlen(str2) + 1);
+    char* rval_initial = rval;
+    if (!rval)
+        return NULL;
+    while (*str1)
+        *rval++ = *str1++;
+    while (*str2)
+        *rval++ = *str2++;
+    *rval = '\0';
+    return rval_initial;
+}
+
+char* ft_strjoin_path(const char* str1, const char* str2) {
+    if (!str1 || !str2)
+        return NULL;
+    char* rval = malloc(ft_strlen(str1) + ft_strlen(str2) + 2);
+    if (!rval)
+        return NULL;
+    char* rval_initial = rval;
+    while (*str1)
+        *rval++ = *str1++;
+    *rval++ = '/';
+    while (*str2)
+        *rval++ = *str2++;
+    *rval = '\0';
+    return rval_initial;
+}

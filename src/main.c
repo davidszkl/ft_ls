@@ -124,10 +124,11 @@ int main(int ac, char** av) {
         return 1;
     }
 
-    for (int i = 0; i < ft_ls.dirs_count; i++) {
-        chdir("/home/dszklarz/ft_ls/test");
-        output(ft_ls.dirs[i].dir, ft_ls.dirs[i].name);
+    for (int i = 0; i < ft_ls.dirs->count; i++) {
+        if (output(ft_ls.dirs[i].dir, ft_ls.dirs[i].name, 1) != 0)
+            return 1;
+        write(1, "\n", 1);
     }
     
-    return write(1, "\n", 1);
+    return dir_free(ft_ls.dirs, 0);
 }

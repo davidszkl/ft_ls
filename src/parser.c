@@ -1,6 +1,7 @@
 # include "ft_ls.h"
 # include "parser.h"
 # include "utils.h"
+# include "directory.h"
 
 int set_option_short(const char option) {
     for (int i = 0; i < (&ft_ls)->options_count; i++) {
@@ -56,7 +57,7 @@ int handle_path(const char* path, dir_s* dirs, int path_count, struct stat* stat
     }
 
     dirs[path_count].dir = opendir(path);
-    dirs[path_count].name = path;
+    dirs[path_count].name = ft_strdup(path, -1);
     if (!dirs[path_count].dir)
         return 1;
 
@@ -69,7 +70,7 @@ int parse_arguments(int ac, char** av) {
     int path_count = 0;
 
     // Most of the arguments to the program should be paths to list.
-    dirs = malloc(sizeof(dir_s*) * (ac));
+    dirs = malloc(sizeof(dir_s) * (ac));
     if (!dirs)
         return 1;
     ft_memset(dirs, 0, sizeof(dir_s*) * (ac));
@@ -90,15 +91,15 @@ int parse_arguments(int ac, char** av) {
         if (!getcwd(cwd, PATH_MAX))
             return ft_free(dirs, 1);
 
+        dirs[0].name = ft_strdup(".", 1);
         dirs[0].dir = opendir(cwd);
         if (!dirs[0].dir) {
-            //TODO closedirs
-            return ft_free(dirs, 1);
+            return dir_free(dirs, 1);
         }
 
         path_count++;
     }
     (&ft_ls)->dirs = dirs;
-    (&ft_ls)->dirs_count = path_count;
+    dirs->count = path_count;
     return 0;
 }
