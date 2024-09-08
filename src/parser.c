@@ -49,29 +49,30 @@ int handle_option(const char* option_str) {
     return 0;
 }
 
-int handle_path(const char* path, DIR** dirs, int path_count, struct stat* statbuf) {
+int handle_path(const char* path, dir_s* dirs, int path_count, struct stat* statbuf) {
     if (stat(path, statbuf) != 0) {
         ft_printf("ft_ls: cannot access '%s': No such file or directory", path);
         return 1;
     }
 
-    dirs[path_count] = opendir(path);
-    if (!dirs[path_count])
+    dirs[path_count].dir = opendir(path);
+    dirs[path_count].name = path;
+    if (!dirs[path_count].dir)
         return 1;
 
     return 0;
 }
 
 int parse_arguments(int ac, char** av) {
-    DIR** dirs = NULL;
+    dir_s* dirs;
     struct stat statbuf;
     int path_count = 0;
 
     // Most of the arguments to the program should be paths to list.
-    dirs = malloc(sizeof(DIR*) * (ac));
+    dirs = malloc(sizeof(dir_s*) * (ac));
     if (!dirs)
         return 1;
-    ft_memset(dirs, 0, sizeof(DIR*) * (ac));
+    ft_memset(dirs, 0, sizeof(dir_s*) * (ac));
 
     for (int argc = 1; argc < ac; argc++) {
         // for every argument, check if it's an option ( starts with '-') or a path
@@ -84,14 +85,18 @@ int parse_arguments(int ac, char** av) {
             path_count++;
         }
     }
-    if (!path_count++) {
+    if (!path_count) {
         char cwd[PATH_MAX];
         if (!getcwd(cwd, PATH_MAX))
             return ft_free(dirs, 1);
 
-        dirs[0] = opendir(cwd);
-        if (!dirs[0])
+        dirs[0].dir = opendir(cwd);
+        if (!dirs[0].dir) {
+            //TODO closedirs
             return ft_free(dirs, 1);
+        }
+
+        path_count++;
     }
     (&ft_ls)->dirs = dirs;
     (&ft_ls)->dirs_count = path_count;

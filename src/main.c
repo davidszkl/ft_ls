@@ -125,8 +125,9 @@ int main(int ac, char** av) {
     }
 
     for (int i = 0; i < ft_ls.dirs_count; i++) {
-        output(ft_ls.dirs[i]);
+        chdir("/home/dszklarz/ft_ls/test");
+        output(ft_ls.dirs[i].dir, ft_ls.dirs[i].name);
     }
-    write(1, "\n", 1);
-    return 0;
+    
+    return write(1, "\n", 1);
 }

@@ -1,5 +1,5 @@
 # pragma once
-#include "ft_ls.h"
+# include "ft_ls.h"
 
 typedef struct vector_s {
     struct dirent** content;

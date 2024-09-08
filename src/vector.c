@@ -54,8 +54,10 @@ vector_s* vector_pop(vector_s* vector) {
 static void sort_compare(struct dirent** a, struct dirent** b) {
     struct dirent* small;
     struct dirent* big;
-    int comp = ft_strcmp((*a)->d_name, (*b)->d_name) > 0;
-    int reverse_sort = ft_ls.selected_options && OPTION_REVERSE_SORT;
+    const char* a_name = (*a)->d_name;
+    const char* b_name = (*b)->d_name;
+    int comp = ft_strcmp_dot(a_name, b_name) > 0;
+    int reverse_sort = ft_ls.selected_options & OPTION_REVERSE_SORT;
     small = comp ? *a : *b;
     big = comp ? *b : *a;
     *a = reverse_sort ? small : big;

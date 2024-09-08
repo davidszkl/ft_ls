@@ -3,6 +3,7 @@
 # include "parser.h"
 # include "output.h"
 # include "vector.h"
+# include "directory.h"
 # include "utils.h"
 
 // libs

@@ -4,6 +4,7 @@
 # include <dirent.h>
 # include <unistd.h>
 # include <linux/limits.h>
+# include <errno.h>
 # include "ft_printf.h"
 # include "utils.h"
 
@@ -21,10 +22,15 @@ typedef struct options_s {
     char** values;  // for options like format or sort that can have values specified
 } options_s;
 
+typedef struct dir_t {
+    DIR* dir;
+    char* name;
+} dir_s;
+
 typedef struct ft_ls_s {
     int selected_options;
     int options_count;
-    DIR** dirs;
+    dir_s* dirs;
     int dirs_count;
     options_s options[5];
 } ft_ls_s;
