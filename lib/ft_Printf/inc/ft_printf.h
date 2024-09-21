@@ -41,4 +41,5 @@ int	putuint(unsigned long int n);
 int	puthex(unsigned long int n, char *str);
 int	putpointer(unsigned long int n, char *str);
 
-int	ft_printf(const char *str, ...);
+int	ft_printf(const char *format, ...);
+int ft_sprintf(char** str, const char* format, ...);

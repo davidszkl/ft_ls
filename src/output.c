@@ -65,19 +65,30 @@ int output(DIR* dir, const char* parent_path, int first) {
 
     if (directories->count > 0 && (&ft_ls)->selected_options & OPTION_RECURSIVE) {
         const char* current_path = NULL;
-        size_t i = 0;
         for (size_t i = 0; i < directories->count; i++) {
+            // show_ino(&ft_ls.visited);
+            if (has_ino(&ft_ls.visited, directories[i].ino) || ft_find_str(parent_path, "/dev/fd")) {
+                continue;
+            }
+            if (directories[i].error) {
+                write(1, directories[i].error, ft_strlen(directories[i].error));
+                continue;
+            }
+
             current_path = ft_strjoin_path(parent_path, directories[i].name);
             if (!current_path) {
                 vector_free(entry_vector);
                 return dir_free(directories, 1);
             }
+            if (add_ino(&ft_ls.visited, directories[i].ino))
+                return dir_free(directories, 1);
             if (output(directories[i].dir, current_path, 0) != 0) {
                 free((char*)current_path);
                 vector_free(entry_vector);
                 return dir_free(directories, 1);
             }
-            i++;
+
+            ft_ls.visited.size--;
             free((char*)current_path);
         }
     }

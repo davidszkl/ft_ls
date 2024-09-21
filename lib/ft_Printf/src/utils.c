@@ -100,3 +100,51 @@ const char* ft_strchr(const char c, const char* str) {
         str++;
     return *str ? str : NULL;
 }
+
+char* ft_strtrim_one(const char* str, char c) {
+    const char* left = str;
+    const char* right = str;
+    char* rval;
+
+    while (*str && *str == c)
+        str++;
+    if (str != left)
+        left = str - 1;
+    while (*str && *str != c)
+        str++;
+    right = str;
+
+    rval = malloc(sizeof(char) * (right - left + 1));
+    if (!rval)
+        return NULL;
+    char* it = rval;
+    while (left != right)
+        *it++ = *left++;
+    *it = '\0';
+
+    return rval;
+}
+
+const char* ft_find_str(const char* str, const char* to_find) {
+    if (!str)
+        return NULL;
+    char* find_ptr;
+    char* rval;
+    while (*str) {
+        if (*str == *to_find) {
+            find_ptr = (char*)to_find;
+            rval = (char*)str;
+            while (*str && *find_ptr && *str == *find_ptr) {
+                str++;
+                find_ptr++;
+            }
+            if (!*str && *find_ptr)
+                return NULL;
+            if (!*find_ptr)
+                return rval;
+            str = rval;
+        }
+        str++;
+    }
+    return NULL;
+}

@@ -1,5 +1,6 @@
 # include "vector.h"
 # include "utils.h"
+# include "ft_ls.h"
 # include <dirent.h>
 
 vector_s* vector_make(size_t capacity) {
@@ -29,18 +30,18 @@ static int ft_realloc(vector_s* vector) {
     }
     ft_memcpy(new, old_content, (size_t)((sizeof(struct dirent*) * vector->size) / sizeof(char)));
     vector->content = new;
+    vector->capacity *= 2;
 
     return ft_free(old_content, 0);
 }
 
 vector_s* vector_push(vector_s* vector, struct dirent* elem) {
     if (vector->size == vector->capacity) {
-        if (!ft_realloc(vector)) {
+        if (ft_realloc(vector)) {
             return NULL;
         }
     }
-    vector->content[vector->size] = elem;
-    vector->size++;
+    vector->content[vector->size++] = elem;
 
     return vector;
 }
@@ -75,4 +76,46 @@ void vector_sort(vector_s* vector) {
 void vector_free(vector_s* vector) {
     free(vector->content);
     free(vector);
+}
+
+
+// ino
+visited_ino_s* init_visited(visited_ino_s* visited) {
+    visited->ino = malloc(sizeof(ino_t) * 25);
+    if (!visited->ino)
+        return NULL;
+    visited->capacity = 25;
+    visited->size = 0;
+
+    return visited;
+}
+
+int add_ino(visited_ino_s* visited, ino_t ino) { 
+    if (visited->size == visited->capacity) {
+        ino_t* new = malloc(sizeof(ino_t) * visited->capacity * 2);
+        if (!new)
+            return 1;
+        ft_memcpy(new, visited->ino, (sizeof(ino_t) * visited->size));
+        free(visited->ino);
+        visited->ino = new;
+        visited->capacity *= 2;
+        return 0;
+    } 
+    visited->ino[visited->size++] = ino;
+    return 0;
+}
+
+int has_ino(visited_ino_s* visited, ino_t ino) {
+    for (size_t i = 0; i < visited->size; i++) {
+        if (visited->ino[i] == ino)
+            return 1;
+    }
+    return 0;
+}
+
+void show_ino(visited_ino_s* visited) {
+    for (size_t i = 0; i < visited->size; i++) {
+        ft_printf("%d,", visited->ino[i]);
+    }
+    write(1, "\n", 1);
 }

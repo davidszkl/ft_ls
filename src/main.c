@@ -124,11 +124,18 @@ int main(int ac, char** av) {
         return 1;
     }
 
-    for (int i = 0; i < ft_ls.dirs->count; i++) {
+    for (size_t i = 0; i < ft_ls.dirs->count; i++) {
+        if (ft_find_str(ft_ls.dirs[i].name, "/dev/fd")) {
+            continue;
+        }
+        if (!init_visited(&ft_ls.visited))
+            return 1;
+        if (add_ino(&ft_ls.visited, ft_ls.dirs[i].ino))
+            return 1;
         if (output(ft_ls.dirs[i].dir, ft_ls.dirs[i].name, 1) != 0)
             return 1;
-        write(1, "\n", 1);
     }
     
+    free(ft_ls.visited.ino);
     return dir_free(ft_ls.dirs, 0);
 }

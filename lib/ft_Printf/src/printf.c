@@ -136,6 +136,8 @@ const char* get_str_to_write(char specifier, va_list list) {
     }
     else if (specifier == 's') {
         char* str = va_arg(list, char*);
+        if (!str)
+            return ft_strdup("(null)", -1);
         str_to_write = ft_strdup(str, -1);
         if (!str_to_write)
             return NULL;
@@ -250,21 +252,34 @@ char* format_string(const char* str, va_list list, buffer_s* buffer) {
     return buffer->bytes;
 }
 
-int	ft_printf(const char *str, ...) {
-	va_list	list;
-    
+static buffer_s* ft_printf_helper(const char*str, va_list list) {
     buffer_s* buffer = init_buffer();
-    
-    va_start(list, str);
 	buffer->bytes = format_string(str, list, buffer);
     if (!buffer->bytes) {
         free_buffer(buffer);
-        return -1;
+        return NULL;
     }
-	va_end(list);
+    return buffer;
+}
 
+int	ft_printf(const char *format, ...) {
+    va_list	list;
+    va_start(list, format);
+	buffer_s* buffer = ft_printf_helper(format, list);
+    va_end(list);
     write(1, buffer->bytes, buffer->size);
     int len = buffer->size;
     free_buffer(buffer);
 	return (len);
+}
+
+int ft_sprintf(char** str, const char* format, ...) {
+    va_list	list;
+    va_start(list, format);
+    buffer_s* buffer = ft_printf_helper(format, list);
+    va_end(list);
+    *str = ft_strdup(buffer->bytes, -1);
+    int len = buffer->size;
+    free_buffer(buffer);
+	return str ? len : -1;
 }

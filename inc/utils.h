@@ -7,3 +7,5 @@ int ft_strcmp_dot(const char* str1, const char* str2);
 int ft_free(void* ptr, int rval);
 char* ft_strjoin(const char* str1, const char* str2);
 char* ft_strjoin_path(const char* str1, const char* str2);
+char* ft_strtrim_one(const char* str, char c);
+const char* ft_find_str(const char* str, const char* to_find);
