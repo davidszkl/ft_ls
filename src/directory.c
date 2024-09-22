@@ -10,18 +10,17 @@ int is_dir(struct dirent* entry) {
 int dir_count(vector_s* entry_vector) {
     int dircount = 0;
     for (size_t i = 0; i < entry_vector->size; i++) {
-        dircount += is_dir(entry_vector->content[i]);
+        dircount += is_dir(entry_vector->content[i]->elem);
     }
     return dircount;
 }
 
 static int init_dir_helpers(char** dir_path,  dir_s** dir_struct, dir_s* directories, vector_s* entry_vector, const char* path, size_t i, size_t dir_idx) {
-    *dir_path = ft_strjoin_path(path, entry_vector->content[i]->d_name);
+    *dir_path = ft_strjoin_path(path, entry_vector->content[i]->elem->d_name);
     if (!dir_path)
         return 1;
     *dir_struct = &directories[dir_idx];
     (*dir_struct)->error = NULL;
-    (*dir_struct)->ino = 0;
     (*dir_struct)->dir = NULL;
     (*dir_struct)->name = NULL;
     return 0;
@@ -44,13 +43,10 @@ static int handle_dir_error(dir_s* directories, dir_s* dir_struct, const char* d
 
 static int fill_dir_struct(dir_s* dir_struct, char* dir_path, vector_s* entry_vector, DIR* directory, size_t i) {
     dir_struct->dir = directory;
-    struct stat statbuf;
-    if (stat(dir_path, &statbuf))
+    if (stat(dir_path, &dir_struct->stat))
         return 1;
-    dir_struct->ino = statbuf.st_ino;
-
     
-    dir_struct->name = ft_strdup(entry_vector->content[i]->d_name, -1);
+    dir_struct->name = ft_strdup(entry_vector->content[i]->elem->d_name, -1);
     if (!dir_struct->name) 
         return 1;
 
@@ -61,8 +57,7 @@ dir_s* get_directories(vector_s* entry_vector, const char* path) {
     dir_s* directories = malloc(sizeof(dir_s) * (entry_vector->size + 1));
     if (!directories) 
         return NULL;
-    ft_memset(directories, 0, sizeof(dir_s*) * (entry_vector->size + 1));
-    directories->count = 0;
+    ft_memset(directories, 0, sizeof(dir_s) * (entry_vector->size + 1));
 
     size_t dir_idx = 0;
     for (size_t i = 0; i < entry_vector->size; i++) {
@@ -96,7 +91,7 @@ dir_s* get_directories(vector_s* entry_vector, const char* path) {
         directories->dir = NULL;
         directories->name = NULL;
         directories->error = NULL;
-        directories->ino = 0;
+        ft_memset(&directories->stat, 0, sizeof(struct stat));
     }
     return directories;
 }

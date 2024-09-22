@@ -28,7 +28,7 @@ char* ft_itoa(int nbr) {
     int	tmp = nbr;
     size_t size = 1;
 
-    while (tmp > 10) {
+    while (tmp >= 10) {
         size++;
         tmp /= 10;
     }
@@ -38,7 +38,7 @@ char* ft_itoa(int nbr) {
         return NULL;
 
     int i = size - 1;
-    while (nbr > 10) {
+    while (nbr >= 10) {
         res[i--] = nbr % 10 + '0';
         nbr /= 10;
     }
@@ -110,9 +110,12 @@ char* ft_strtrim_one(const char* str, char c) {
         str++;
     if (str != left)
         left = str - 1;
-    while (*str && *str != c)
+    while (*str)
         str++;
-    right = str;
+    str--;
+    while(*str && *str == c)
+        str--;
+    right = str + 1;
 
     rval = malloc(sizeof(char) * (right - left + 1));
     if (!rval)

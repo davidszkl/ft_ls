@@ -1,15 +1,20 @@
 # pragma once
 # include "ft_ls.h"
 
+typedef struct dirent_stat_t {
+    struct dirent* elem;
+    struct stat stat;
+} dirent_stat_s;
+
 typedef struct vector_s {
-    struct dirent** content;
+    dirent_stat_s** content;
     size_t size;
     size_t capacity;
 } vector_s;
 
 
 vector_s* vector_make(size_t capacity);
-vector_s* vector_push(vector_s* vector, struct dirent* elem);
+vector_s* vector_push(vector_s* vector, struct dirent* elem, const char* parent_path);
 vector_s* vector_pop(vector_s* vector);
 void vector_sort(vector_s* vector);
 void vector_free(vector_s* vector);

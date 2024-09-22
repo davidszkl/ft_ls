@@ -1,6 +1,7 @@
 # include <stdlib.h>
 # include <stdio.h>
 # include "main.h"
+# include "utils.h"
 
 int test_printf() {
     ft_printf("testing no specifier\n");
@@ -124,16 +125,22 @@ int main(int ac, char** av) {
         return 1;
     }
 
+    if (!init_visited(&ft_ls.visited))
+        dir_free(ft_ls.dirs, 1);
+
     for (size_t i = 0; i < ft_ls.dirs->count; i++) {
-        if (ft_find_str(ft_ls.dirs[i].name, "/dev/fd")) {
+        if (ft_ls.dirs[i].error) {
+            write(1, ft_ls.dirs[i].error, ft_strlen(ft_ls.dirs[i].error));
             continue;
         }
-        if (!init_visited(&ft_ls.visited))
-            return 1;
-        if (add_ino(&ft_ls.visited, ft_ls.dirs[i].ino))
-            return 1;
+        if (i > 0)
+            write(1, "\n", 1);
+        if (ft_find_str(ft_ls.dirs[i].name, "/dev/fd"))
+            continue;
+        if (add_ino(&ft_ls.visited, ft_ls.dirs[i].stat.st_ino))
+            break;
         if (output(ft_ls.dirs[i].dir, ft_ls.dirs[i].name, 1) != 0)
-            return 1;
+            break;
     }
     
     free(ft_ls.visited.ino);

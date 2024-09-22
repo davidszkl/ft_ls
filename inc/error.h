@@ -1,3 +1,4 @@
+# pragma once
 # define NO_ACCESS "cannot access"
 # define NO_OPEN "cannot open directory"
 

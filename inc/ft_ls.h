@@ -6,8 +6,10 @@
 # include <linux/limits.h>
 # include <errno.h>
 # include <string.h>
+# include <pwd.h>
+# include <grp.h>
+# include <time.h>
 # include "ft_printf.h"
-# include "utils.h"
 
 // options
 # define OPTION_LONG 1
@@ -27,7 +29,7 @@ typedef struct dir_t {
     DIR* dir;
     char* name;
     char* error;
-    ino_t ino;
+    struct stat stat;
     size_t count;
 } dir_s;
 
@@ -40,9 +42,21 @@ typedef struct visited_ino_t {
 typedef struct ft_ls_t {
     int selected_options;
     int options_count;
+    int show_headers;
     dir_s* dirs;
     options_s options[5];
     visited_ino_s visited;
 } ft_ls_s;
+
+typedef struct output_long_t {
+    char* perms;
+    nlink_t links;
+    char* user;
+    char* group;
+    off_t size;
+    char* datetime;
+    char* fname;
+    size_t count;
+} output_long_s;
 
 extern ft_ls_s ft_ls;

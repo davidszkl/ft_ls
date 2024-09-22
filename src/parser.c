@@ -4,7 +4,7 @@
 # include "directory.h"
 # include "error.h"
 
-int set_option_short(const char option) {
+static int set_option_short(const char option) {
     for (int i = 0; i < (&ft_ls)->options_count; i++) {
         if (option == (&ft_ls)->options[i].short_name) {
             (&ft_ls)->selected_options |= (&ft_ls)->options[i].val;
@@ -14,7 +14,7 @@ int set_option_short(const char option) {
     return 1;
 }
 
-int set_option_long(const char* option) {
+static int set_option_long(const char* option) {
     for (int i = 0; i < (&ft_ls)->options_count; i++) {
         if (ft_strcmp(option, (&ft_ls)->options[i].long_name) == 0) {
             (&ft_ls)->selected_options |= (&ft_ls)->options[i].val;
@@ -24,7 +24,7 @@ int set_option_long(const char* option) {
     return 1;
 }
 
-int handle_option(const char* option_str) {
+static int handle_option(const char* option_str) {
     // short option
     if (option_str[1] && option_str[1] != '-') {
         for (int i = 1; i < ft_strlen(option_str); i++) {\
@@ -52,28 +52,59 @@ int handle_option(const char* option_str) {
 }
 
 // 0 no error, 1 error continue, 2+ error
-int handle_path(const char* path, dir_s* dirs, int path_count, struct stat* statbuf) {
-    if (stat(path, statbuf) != 0)
-        return make_error(NO_ACCESS, path, 1);
+static int handle_path(const char* path, dir_s* dirs, int path_count) {
+    dirs[path_count].dir = NULL;
+    dirs[path_count].name = NULL;
+    dirs[path_count].error = NULL;
+
+    if (stat(path, &dirs[path_count].stat) != 0) {
+        dirs[path_count].error = make_error_str(NO_ACCESS, path);
+        return dirs[path_count].error ? 0 : 1;
+    }
 
     DIR* dir = opendir(path);
-    if (!dir)
-        if (errno)
-            return make_error(NO_OPEN, path, 1);
+    if (!dir && errno) {
+        dirs[path_count].error = make_error_str(NO_OPEN, path);
+        return dirs[path_count].error ? 0 : 1;
+    }
     
     char *name = ft_strtrim_one(path, '/');
-    if (!name)
+    if (!name) {
+        closedir(dir);
         return 2;
+    }
 
     dirs[path_count].dir = dir;
     dirs[path_count].name = name;
-    dirs[path_count].ino = statbuf->st_ino;
+    return 0;
+}
+
+static int init_dirs(dir_s* dirs) {
+    char cwd[PATH_MAX];
+    if (!getcwd(cwd, PATH_MAX))
+        return 1;
+    if (stat(".", &dirs[0].stat))
+        return 1;
+    dirs[0].name = ft_strdup(".", 1);
+    if (!dirs[0].name)
+        return 1;
+    dirs[0].dir = opendir(cwd);
+    if (!dirs[0].dir) {
+        free(dirs[0].name);
+        return 1;
+    }
+    dirs[0].error = NULL;
+    return 0;
+}
+
+static int set_arguments_after_parse(dir_s* dirs) {
+    if (dirs->count > 1 || (&ft_ls)->selected_options & OPTION_RECURSIVE)
+        ft_ls.show_headers = 1;
     return 0;
 }
 
 int parse_arguments(int ac, char** av) {
     dir_s* dirs;
-    struct stat statbuf;
     int path_count = 0;
     int path_args = 0;
 
@@ -90,31 +121,17 @@ int parse_arguments(int ac, char** av) {
                 return ft_free(dirs, 1);
         } else {
             path_args++;
-            int rval = handle_path(av[argc], dirs, path_count, &statbuf);
-            if (rval > 1)
+            if (handle_path(av[argc], dirs, path_count))
                 return ft_free(dirs, 1);
-            else if (rval == 1)
-                continue; // error opening one of the folders, continue the rest but dont put this folder in the struct.
             path_count++;
         }
     }
     if (path_args == 0) {
-        char cwd[PATH_MAX];
-        if (!getcwd(cwd, PATH_MAX))
+        if (init_dirs(dirs))
             return ft_free(dirs, 1);
-
-        stat(".", &statbuf);
-        dirs[0].name = ft_strdup(".", 1);
-        dirs[0].dir = opendir(cwd);
-        dirs[0].ino = statbuf.st_ino;
-        dirs[0].error = NULL;
-        if (!dirs[0].dir) {
-            return dir_free(dirs, 1);
-        }
-
         path_count++;
     }
     (&ft_ls)->dirs = dirs;
     dirs->count = path_count;
-    return 0;
+    return set_arguments_after_parse(dirs);
 }

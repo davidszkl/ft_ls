@@ -1,0 +1,2 @@
+ls -ar: . and .. should be at end
+handle forbidden folders (/dev/fd)

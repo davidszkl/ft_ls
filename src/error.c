@@ -7,7 +7,6 @@ int make_error(const char* ft_ls_error, const char* error_string, int rval) {
     if (!errno_error)
         return 1;
     ft_printf("ft_ls: %s '%s': %s\n", ft_ls_error, error_string, errno_error);
-    // free(errno_error);
     return rval;
 }
 
@@ -21,6 +20,5 @@ char* make_error_str(const char* ft_ls_error, const char* error_string) {
         free(rval);
         return NULL;
     }
-    // free(errno_error);
     return rval;
 }

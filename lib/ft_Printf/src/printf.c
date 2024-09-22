@@ -132,7 +132,8 @@ const char* get_str_to_write(char specifier, va_list list) {
         str_to_write = malloc(sizeof(char) * (1 + 1));
         if (!str_to_write)
             return NULL;
-        str_to_write = "%\0";
+        str_to_write[0] = '%';
+        str_to_write[1] = '\0';
     }
     else if (specifier == 's') {
         char* str = va_arg(list, char*);
