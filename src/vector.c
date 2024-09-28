@@ -66,12 +66,22 @@ vector_s* vector_pop(vector_s* vector) {
     return vector;
 }
 
+static int compare_time(dirent_stat_s* a, dirent_stat_s* b) {
+    return a->stat.st_mtime > b->stat.st_mtime;
+}
+
+static int compare_helper(dirent_stat_s* a, dirent_stat_s* b) {
+    if (ft_ls.selected_options & OPTION_SORT_TIME) {
+        return compare_time(a, b);
+    } else {
+        return ft_strcmp_dot(a->elem->d_name, b->elem->d_name) > 0;
+    }
+}
+
 static void sort_compare(dirent_stat_s** a, dirent_stat_s** b) {
     dirent_stat_s* small;
     dirent_stat_s* big;
-    const char* a_name = (*a)->elem->d_name;
-    const char* b_name = (*b)->elem->d_name;
-    int comp = ft_strcmp_dot(a_name, b_name) > 0;
+    int comp = compare_helper(*a, *b);
     int reverse_sort = ft_ls.selected_options & OPTION_REVERSE_SORT;
     small = comp ? *a : *b;
     big = comp ? *b : *a;

@@ -146,7 +146,7 @@ static output_long_s** make_output_long_info(const vector_s* entry_vector, size_
         }
     }
     
-    if (entry_vector->size == 0) { // at least one node is needed to store the count;
+    if (entry_vector->size == 0 || dir_idx == 0) { // at least one node is needed to store the count;
         output_info[0] = malloc(sizeof(output_long_s));
         if (!output_info[0]) {
             ft_free_output_long_tab(output_info, 1);
