@@ -48,7 +48,7 @@ vector_s* vector_push(vector_s* vector, struct dirent* elem, const char* parent_
         free(el);
         return NULL;
     }
-    if (stat(fullpath, &el->stat)) {
+    if (lstat(fullpath, &el->stat)) {
         free((char*)fullpath);
         free(el);
         return NULL;
@@ -67,7 +67,11 @@ vector_s* vector_pop(vector_s* vector) {
 }
 
 static int compare_time(dirent_stat_s* a, dirent_stat_s* b) {
-    return a->stat.st_mtime > b->stat.st_mtime;
+    if (a->stat.st_mtim.tv_sec != b->stat.st_mtim.tv_sec)
+        return a->stat.st_mtim.tv_sec < b->stat.st_mtim.tv_sec;
+    if (a->stat.st_mtim.tv_nsec != b->stat.st_mtim.tv_nsec)
+        return a->stat.st_mtim.tv_nsec < b->stat.st_mtim.tv_nsec;
+    return ft_strcmp_dot(a->elem->d_name, b->elem->d_name) > 0;
 }
 
 static int compare_helper(dirent_stat_s* a, dirent_stat_s* b) {
@@ -140,7 +144,7 @@ int has_ino(visited_ino_s* visited, ino_t ino) {
 
 void show_ino(visited_ino_s* visited) {
     for (size_t i = 0; i < visited->size; i++) {
-        ft_printf("%d,", visited->ino[i]);
+        ft_dprintf(STDOUT_FILENO, "%d,", visited->ino[i]);
     }
-    write(1, "\n", 1);
+    write(STDOUT_FILENO, "\n", 1);
 }

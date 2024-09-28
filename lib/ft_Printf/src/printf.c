@@ -229,7 +229,6 @@ int write_token(buffer_s* buffer, token_s* token, va_list list) {
     return len;
 }
 
-//"'%5c%c'\n"
 char* format_string(const char* str, va_list list, buffer_s* buffer) {
     // read through string, write characters to buffer until size, if size is reached, re-allocate. Stop at '%' character and handle.
     while (*str) {
@@ -268,7 +267,7 @@ int	ft_printf(const char *format, ...) {
     va_start(list, format);
 	buffer_s* buffer = ft_printf_helper(format, list);
     va_end(list);
-    write(1, buffer->bytes, buffer->size);
+    write(STDOUT_FILENO, buffer->bytes, buffer->size);
     int len = buffer->size;
     free_buffer(buffer);
 	return (len);
@@ -283,4 +282,15 @@ int ft_sprintf(char** str, const char* format, ...) {
     int len = buffer->size;
     free_buffer(buffer);
 	return str ? len : -1;
+}
+
+int ft_dprintf(int fd, const char* format, ...) {
+    va_list	list;
+    va_start(list, format);
+	buffer_s* buffer = ft_printf_helper(format, list);
+    va_end(list);
+    write(fd, buffer->bytes, buffer->size);
+    int len = buffer->size;
+    free_buffer(buffer);
+	return (len);
 }

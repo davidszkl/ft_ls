@@ -115,34 +115,50 @@ ft_ls_s ft_ls = {
         [1] = { .val = OPTION_RECURSIVE, .short_name = 'R', .long_name = "recursive", .values = NULL },
         [2] = { .val = OPTION_ALL, .short_name = 'a', .long_name = "all", .values = NULL },
         [3] = { .val = OPTION_REVERSE_SORT, .short_name = 'r', .long_name = "reverse", .values = NULL },
-        [4] = { .val = OPTION_SORT_TIME, .short_name = 't', .long_name = NULL, .values = NULL }
+        [4] = { .val = OPTION_SORT_TIME, .short_name = 't', .long_name = "time", .values = NULL}
     }
 };
 
+static int init_ft_ls() {
+    ft_ls.options[4].values = malloc(6 * sizeof(char *));
+    if (ft_ls.options[4].values == NULL)
+        return 1;
+    ft_ls.options[4].values[0] = "atime";
+    ft_ls.options[4].values[1] = "access";
+    ft_ls.options[4].values[2] = "use";
+    ft_ls.options[4].values[3] = "ctime";
+    ft_ls.options[4].values[4] = "status";
+    ft_ls.options[4].values[5] = "birth";
+    return 0;
+}
+
 int main(int ac, char** av) {
     // test_printf();
-    if (parse_arguments(ac, av) != 0) {
+    if (init_ft_ls())
         return 1;
-    }
+    if (parse_arguments(ac, av) != 0)
+        return ft_free(ft_ls.options[4].values, 1);
 
     if (!init_visited(&ft_ls.visited))
         dir_free(ft_ls.dirs, 1);
 
     for (size_t i = 0; i < ft_ls.dirs->count; i++) {
         if (ft_ls.dirs[i].error) {
-            write(1, ft_ls.dirs[i].error, ft_strlen(ft_ls.dirs[i].error));
+            write(STDERR_FILENO, ft_ls.dirs[i].error, ft_strlen(ft_ls.dirs[i].error));
             continue;
         }
         if (i > 0)
-            write(1, "\n", 1);
+            write(STDOUT_FILENO, "\n", 1);
         if (ft_find_str(ft_ls.dirs[i].name, "/dev/fd"))
             continue;
         if (add_ino(&ft_ls.visited, ft_ls.dirs[i].stat.st_ino))
             break;
+        ft_ls.parent_path = ft_ls.dirs[i].name;
         if (output(ft_ls.dirs[i].dir, ft_ls.dirs[i].name, 1) != 0)
             break;
     }
     
     free(ft_ls.visited.ino);
+    free(ft_ls.options[4].values);
     return dir_free(ft_ls.dirs, 0);
 }

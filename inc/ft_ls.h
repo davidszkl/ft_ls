@@ -41,11 +41,12 @@ typedef struct visited_ino_t {
 
 typedef struct ft_ls_t {
     int selected_options;
-    int options_count;
+    size_t options_count;
     int show_headers;
     dir_s* dirs;
     options_s options[5];
     visited_ino_s visited;
+    char* parent_path;
 } ft_ls_s;
 
 typedef struct output_long_t {

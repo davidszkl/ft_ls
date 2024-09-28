@@ -15,8 +15,8 @@ int dir_count(vector_s* entry_vector) {
     return dircount;
 }
 
-static int init_dir_helpers(char** dir_path,  dir_s** dir_struct, dir_s* directories, vector_s* entry_vector, const char* path, size_t i, size_t dir_idx) {
-    *dir_path = ft_strjoin_path(path, entry_vector->content[i]->elem->d_name);
+static int init_dir_helpers(char** dir_path,  dir_s** dir_struct, dir_s* directories, vector_s* entry_vector, size_t i, size_t dir_idx) {
+    *dir_path = ft_strjoin_path(ft_ls.parent_path, entry_vector->content[i]->elem->d_name);
     if (!dir_path)
         return 1;
     *dir_struct = &directories[dir_idx];
@@ -43,7 +43,7 @@ static int handle_dir_error(dir_s* directories, dir_s* dir_struct, const char* d
 
 static int fill_dir_struct(dir_s* dir_struct, char* dir_path, vector_s* entry_vector, DIR* directory, size_t i) {
     dir_struct->dir = directory;
-    if (stat(dir_path, &dir_struct->stat))
+    if (lstat(dir_path, &dir_struct->stat))
         return 1;
     
     dir_struct->name = ft_strdup(entry_vector->content[i]->elem->d_name, -1);
@@ -53,7 +53,7 @@ static int fill_dir_struct(dir_s* dir_struct, char* dir_path, vector_s* entry_ve
     return 0;
 }
 
-dir_s* get_directories(vector_s* entry_vector, const char* path) {
+dir_s* get_directories(vector_s* entry_vector) {
     dir_s* directories = malloc(sizeof(dir_s) * (entry_vector->size + 1));
     if (!directories) 
         return NULL;
@@ -64,7 +64,7 @@ dir_s* get_directories(vector_s* entry_vector, const char* path) {
         // init dir_struct and dir_path
         char* dir_path;
         dir_s* dir_struct;
-        if (init_dir_helpers(&dir_path, &dir_struct, directories, entry_vector, path, i, dir_idx)) {
+        if (init_dir_helpers(&dir_path, &dir_struct, directories, entry_vector, i, dir_idx)) {
             free(directories);
             return NULL;
         }

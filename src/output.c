@@ -1,16 +1,20 @@
 # include "ft_ls.h"
 # include "vector.h"
 # include "directory.h"
+# include <unistd.h>
 
 static int is_dot_folder(char* name) {
     return ft_strcmp(name, ".") == 0 || ft_strcmp(name, "..") == 0;
 }
 
+static int is_symbolic_link(struct stat* stat) {
+    return S_ISLNK(stat->st_mode);
+}
 // static int is_hidden_folder(char* name) {
 //     return name[0] && name[0] == '.' && name[1] && name[1] != '.';
 // }
 
-static vector_s* make_entry_vector(DIR* dir, const char* parent_path) {
+static vector_s* make_entry_vector(DIR* dir) {
     vector_s* entry_vector = vector_make(25);
     struct dirent* entry;
 
@@ -19,7 +23,7 @@ static vector_s* make_entry_vector(DIR* dir, const char* parent_path) {
     }
 
     while ((entry = readdir(dir)) != NULL) {
-        if (!vector_push(entry_vector, entry, parent_path)) {
+        if (!vector_push(entry_vector, entry, ft_ls.parent_path)) {
             vector_free(entry_vector);
             return NULL;
         }
@@ -92,6 +96,42 @@ static char* time_string(time_t* time) {
     return rval;
 }
 
+static char* symbolic_file_string(dirent_stat_s* dir) {
+    char* rval = NULL;
+    size_t link_size = ft_strlen(dir->elem->d_name);
+    rval = malloc(sizeof(char*) * (link_size + 4 + dir->stat.st_size + 1));
+    if (!rval)
+        return NULL;
+    ft_memset(rval, 0, link_size + 4 + dir->stat.st_size + 1);
+    ft_memcpy(rval, dir->elem->d_name, link_size);
+    ft_memcpy(rval + link_size, " -> ", 4);
+    char *complete_link_name = ft_strjoin_path(ft_ls.parent_path, dir->elem->d_name);
+    if (!complete_link_name) {
+        free(rval);
+        return NULL;
+    }
+    if (readlink(complete_link_name, rval + link_size + 4, dir->stat.st_size) == -1) {
+        free(rval);
+        free(complete_link_name);
+        return NULL;
+    }
+    rval[link_size + 4 + dir->stat.st_size + 1] = '\0';
+    free(complete_link_name);
+    return rval;
+}
+
+static char* file_string(dirent_stat_s* dir) {
+    char* rval = NULL;
+    if (is_symbolic_link(&dir->stat)) {
+        rval = symbolic_file_string(dir);
+    } else {
+        rval = ft_strdup(dir->elem->d_name, -1);
+        if (!rval)
+            return NULL;
+    }
+    return rval;
+}
+
 static output_long_s* create_output_long(dirent_stat_s* stat) {
     output_long_s* output_long = malloc(sizeof(output_long_s));
     if (!output_long)
@@ -122,7 +162,12 @@ static output_long_s* create_output_long(dirent_stat_s* stat) {
         ft_free_output_long(output_long, 1);
         return NULL;
     }
-    output_long->fname = stat->elem->d_name;
+
+    output_long->fname = file_string(stat);
+    if (!output_long->fname) {
+        ft_free_output_long(output_long, 1);
+        return NULL;
+    }
 
     return output_long;
 }
@@ -154,14 +199,15 @@ static output_long_s** make_output_long_info(const vector_s* entry_vector, size_
         }
         output_info[0]->perms = NULL;
         output_info[0]->datetime = NULL;
+        output_info[0]->fname = NULL;
     }
     output_info[0]->count = dir_idx;
     return output_info;
 }
 
 static int set_max_widths(int* widths, output_long_s** output_info) {
-    widths[0] = 11;
-    widths[5] = 13;
+    widths[0] = 10;
+    widths[5] = 12;
     for (size_t i = 0; i < output_info[0]->count; i++) {
         widths[1] = max(widths[1], numberlen(output_info[i]->links));
         widths[2] = max(widths[2], ft_strlen(output_info[i]->user));
@@ -172,11 +218,11 @@ static int set_max_widths(int* widths, output_long_s** output_info) {
 }
 
 static int print_output_long(output_long_s** output_info, int* widths, size_t total_blocks) {
-    ft_printf("total %d\n", total_blocks);
+    ft_dprintf(STDOUT_FILENO, "total %d\n", total_blocks);
     char* format_string = NULL;
     ft_sprintf(&format_string, "%%%ds %%%dd %%%ds %%%ds %%%dd %%%ds %%s\n", widths[0], widths[1], widths[2], widths[3], widths[4], widths[5]);
     for (size_t i = 0; i < output_info[0]->count; i++) {
-        if (ft_printf(format_string, output_info[i]->perms, output_info[i]->links, output_info[i]->user, output_info[i]->group, output_info[i]->size, output_info[i]->datetime, output_info[i]->fname) == -1) {
+        if (ft_dprintf(STDOUT_FILENO, format_string, output_info[i]->perms, output_info[i]->links, output_info[i]->user, output_info[i]->group, output_info[i]->size, output_info[i]->datetime, output_info[i]->fname) == -1) {
             free(format_string);
             return 1;
         }
@@ -185,11 +231,11 @@ static int print_output_long(output_long_s** output_info, int* widths, size_t to
     return 0;
 }
 
-static int output_print_long(const vector_s* entry_vector, const char* parent_path, int first) {
+static int output_print_long(const vector_s* entry_vector, int first) {
     if (!first)
-        write(1, "\n", 1);
+        write(STDOUT_FILENO, "\n", 1);
     if ((&ft_ls)->show_headers){
-        ft_printf("%s:\n", parent_path);
+        ft_dprintf(STDOUT_FILENO, "%s:\n", ft_ls.parent_path);
     }
     size_t total_blocks = 0;
     output_long_s** output_info = make_output_long_info(entry_vector, &total_blocks);
@@ -202,94 +248,131 @@ static int output_print_long(const vector_s* entry_vector, const char* parent_pa
     
     print_output_long(output_info, widths, total_blocks);
     if (output_info[0]->count) {
-        write(1, "\n", 1);
+        write(STDOUT_FILENO, "\n", 1);
     }
 
     return ft_free_output_long_tab(output_info, 0);
 }
 
-static int output_print_normal(const vector_s* entry_vector, const char* parent_path, int first) {
-    const int option_all = (&ft_ls)->selected_options & OPTION_ALL;
-    if (!first)
-        write(1, "\n", 1);
-    if ((&ft_ls)->show_headers){
-        ft_printf("%s:\n", parent_path);
-    }
-    size_t real_count = 0;
+static char* compute_buffer_len(const vector_s* entry_vector, const int option_all, size_t* str_len) {
     for (size_t i = 0; i < entry_vector->size; i++) {
         if (is_dot_folder(entry_vector->content[i]->elem->d_name) && !option_all)
             continue;
-        ft_printf("%s  ", entry_vector->content[i]->elem->d_name);
-        real_count++;
+        *str_len += ft_strlen(entry_vector->content[i]->elem->d_name) + 2;
     }
-    if (real_count) {
-        write(1, "\n", 1);
-    }
-    return 0;
+    char* buffer = malloc(sizeof(char) * (*str_len + 1));
+    if (!buffer)
+        return NULL;
+
+    return buffer;
 }
 
-static int output_print(const vector_s* entry_vector, const char* parent_path, int first) {
+static int fill_buffer(const vector_s* entry_vector, const int option_all, char* buffer, size_t* real_count) {
+    size_t idx = 0;
+    for (size_t i = 0; i < entry_vector->size; i++) {
+        if (is_dot_folder(entry_vector->content[i]->elem->d_name) && !option_all)
+            continue;
+        size_t len = ft_strlen(entry_vector->content[i]->elem->d_name);
+        if (*real_count > 0) {
+            buffer[idx++] = ' ';
+            buffer[idx++] = ' ';
+        }
+        ft_memcpy(&buffer[idx], entry_vector->content[i]->elem->d_name, len);
+        idx += len;
+        *real_count += 1;
+    }
+
+    buffer[idx] = '\0';
+    return idx;
+}
+
+static int output_print_normal(const vector_s* entry_vector, int first) {
+    const int option_all = (&ft_ls)->selected_options & OPTION_ALL;
+    if (!first)
+        write(STDOUT_FILENO, "\n", 1);
+    if ((&ft_ls)->show_headers){
+        ft_dprintf(STDOUT_FILENO, "%s:\n", ft_ls.parent_path);
+    }
+    size_t real_count = 0;
+    size_t str_len = 0;
+    char* buffer = compute_buffer_len(entry_vector, option_all, &str_len);
+    if (!buffer)
+        return 1;
+
+    size_t idx = fill_buffer(entry_vector, option_all, buffer, &real_count);
+
+    write(STDOUT_FILENO, buffer, idx);
+    if (real_count) {
+        write(STDOUT_FILENO, "\n", 1);
+    }
+    return ft_free(buffer, 0);
+}
+
+static int output_print(const vector_s* entry_vector, int first) {
     if ((&ft_ls)->selected_options & OPTION_LONG){
-        if (output_print_long(entry_vector, parent_path, first))
+        if (output_print_long(entry_vector, first))
             return 1;
     } else {
-        if (output_print_normal(entry_vector, parent_path, first))
+        if (output_print_normal(entry_vector, first))
             return 1;
     }
     return 0;
 }
 
-static vector_s* output_helper(DIR* dir, const char* parent_path, int first) {
-    vector_s* entry_vector = make_entry_vector(dir, parent_path);
+static vector_s* output_helper(DIR* dir, int first) {
+    vector_s* entry_vector = make_entry_vector(dir);
     if (!entry_vector)
         return NULL;
 
     vector_sort(entry_vector);
 
-    if (output_print(entry_vector, parent_path, first))
+    if (output_print(entry_vector, first))
         return NULL;
 
     return entry_vector;
 }
 
-int output(DIR* dir, const char* parent_path, int first) {
-    vector_s* entry_vector = output_helper(dir, parent_path, first);
+int output(DIR* dir, int first) {
+    char* previous_path = ft_ls.parent_path;
+    vector_s* entry_vector = output_helper(dir, first);
     if (!entry_vector)
         return 1;
 
-    dir_s* directories = get_directories(entry_vector, parent_path);
+    dir_s* directories = get_directories(entry_vector);
     if (!directories) {
         vector_free(entry_vector);
         return 1;
     }
 
     if (directories->count > 0 && (&ft_ls)->selected_options & OPTION_RECURSIVE) {
-        const char* current_path = NULL;
         for (size_t i = 0; i < directories->count; i++) {
             if (
                 has_ino(&ft_ls.visited, directories[i].stat.st_ino) ||
-                ft_find_str(parent_path, "/dev/fd") ||
-                is_dot_folder(directories[i].name)
+                ft_find_str(ft_ls.parent_path, "/dev/fd") ||
+                is_dot_folder(directories[i].name) ||
+                is_symbolic_link(&directories[i].stat)
                 ) {
                 continue;
             }
             if (directories[i].error) {
-                write(1, directories[i].error, ft_strlen(directories[i].error));
+                write(STDERR_FILENO, directories[i].error, ft_strlen(directories[i].error));
                 continue;
             }
 
-            current_path = ft_strjoin_path(parent_path, directories[i].name);
+            char* current_path = ft_strjoin_path(ft_ls.parent_path, directories[i].name);
             if (!current_path) {
                 vector_free(entry_vector);
                 return dir_free(directories, 1);
             }
             if (add_ino(&ft_ls.visited, directories[i].stat.st_ino))
                 return dir_free(directories, 1);
-            if (output(directories[i].dir, current_path, 0) != 0) {
+            ft_ls.parent_path = current_path;
+            if (output(directories[i].dir, 0) != 0) {
                 free((char*)current_path);
                 vector_free(entry_vector);
                 return dir_free(directories, 1);
             }
+            ft_ls.parent_path = previous_path;
 
             ft_ls.visited.size--;
             free((char*)current_path);

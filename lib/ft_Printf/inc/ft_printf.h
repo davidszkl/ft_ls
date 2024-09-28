@@ -8,7 +8,6 @@
 
 # define FLAG_JUSTIFY_LEFT 1
 
-
 typedef struct buffer_s {
     size_t size;
     size_t capacity;
@@ -43,3 +42,4 @@ int	putpointer(unsigned long int n, char *str);
 
 int	ft_printf(const char *format, ...);
 int ft_sprintf(char** str, const char* format, ...);
+int ft_dprintf(int fd, const char* format, ...);

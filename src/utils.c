@@ -82,6 +82,7 @@ int ft_free_tab(char** tab, int rval) {
 int ft_free_output_long(output_long_s* output_long, int rval) {
     free(output_long->perms);
     free(output_long->datetime);
+    free(output_long->fname);
     free(output_long);
     return rval;
 }
