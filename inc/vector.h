@@ -4,6 +4,7 @@
 typedef struct dirent_stat_t {
     struct dirent* elem;
     struct stat stat;
+    char* error;
 } dirent_stat_s;
 
 typedef struct vector_s {

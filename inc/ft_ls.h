@@ -57,6 +57,7 @@ typedef struct output_long_t {
     off_t size;
     char* datetime;
     char* fname;
+    char* error;
     size_t count;
 } output_long_s;
 

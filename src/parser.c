@@ -71,10 +71,6 @@ static int handle_option(const char* option_str) {
 
 // 0 no error, 1 error continue, 2+ error
 static int handle_path(const char* path, dir_s* dirs, int path_count) {
-    dirs[path_count].dir = NULL;
-    dirs[path_count].name = NULL;
-    dirs[path_count].error = NULL;
-
     if (lstat(path, &dirs[path_count].stat) != 0) {
         dirs[path_count].error = make_error_str(NO_ACCESS, path);
         return dirs[path_count].error ? 0 : 1;
@@ -121,16 +117,56 @@ static int set_arguments_after_parse(dir_s* dirs) {
     return 0;
 }
 
+static int compare_time(dir_s* a, dir_s* b) {
+    if (a->stat.st_mtim.tv_sec != b->stat.st_mtim.tv_sec)
+        return a->stat.st_mtim.tv_sec < b->stat.st_mtim.tv_sec;
+    if (a->stat.st_mtim.tv_nsec != b->stat.st_mtim.tv_nsec)
+        return a->stat.st_mtim.tv_nsec < b->stat.st_mtim.tv_nsec;
+    return ft_strcmp_dot(a->name, b->name) > 0;
+}
+
+static int compare_helper(dir_s* a, dir_s* b) {
+    // lstat failed because of no permissions, sort in alphabetical order only.
+    if (a->error || b->error) {
+        return ft_strcmp_dot(a->name, b->name) > 0;
+    }
+    // normal case
+    if (ft_ls.selected_options & OPTION_SORT_TIME) {
+        return compare_time(a, b);
+    } else {
+        return ft_strcmp_dot(a->name, b->name) > 0;
+    }
+}
+
+static void sort_compare(dir_s* a, dir_s* b) {
+    dir_s small;
+    dir_s big;
+    int comp = compare_helper(a, b) > 0;
+    int reverse_sort = ft_ls.selected_options & OPTION_REVERSE_SORT;
+    small = comp ? *a : *b;
+    big = comp ? *b : *a;
+    *a = reverse_sort ? small : big;
+    *b = reverse_sort ? big : small;
+}
+
+static int sort_dirs(dir_s* dirs, size_t count) {
+    for (size_t i = 0; i < count; i++) {
+        for (size_t j = i + 1; j < count; j++) {
+            sort_compare(&dirs[i], &dirs[j]);
+        }
+    }
+    return 0;
+}
+
 int parse_arguments(int ac, char** av) {
     dir_s* dirs;
     int path_count = 0;
     int path_args = 0;
 
     // Most of the arguments to the program should be paths to list.
-    dirs = malloc(sizeof(dir_s) * (ac));
+    dirs = ft_malloc_zero(sizeof(dir_s) * (ac));
     if (!dirs)
         return 1;
-    ft_memset(dirs, 0, sizeof(dir_s*) * (ac));
 
     for (int argc = 1; argc < ac; argc++) {
         // for every argument, check if it's an option ( starts with '-') or a path
@@ -149,7 +185,8 @@ int parse_arguments(int ac, char** av) {
             return ft_free(dirs, 1);
         path_count++;
     }
-    (&ft_ls)->dirs = dirs;
+    sort_dirs(dirs, path_count);
     dirs->count = path_count;
+    (&ft_ls)->dirs = dirs;
     return set_arguments_after_parse(dirs);
 }

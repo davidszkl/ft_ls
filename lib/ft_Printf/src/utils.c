@@ -105,6 +105,7 @@ char* ft_strtrim_one(const char* str, char c) {
     const char* left = str;
     const char* right = str;
     char* rval;
+    int addone = 0;
 
     while (*str && *str == c)
         str++;
@@ -116,13 +117,17 @@ char* ft_strtrim_one(const char* str, char c) {
     while(*str && *str == c)
         str--;
     right = str + 1;
+    // if (*right != c)
+    //     addone = 1;
 
-    rval = malloc(sizeof(char) * (right - left + 1));
+    rval = malloc(sizeof(char) * (right - left + addone + 1));
     if (!rval)
         return NULL;
     char* it = rval;
     while (left != right)
         *it++ = *left++;
+    // if (addone)
+    //     *it++ = c;
     *it = '\0';
 
     return rval;

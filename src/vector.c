@@ -1,7 +1,8 @@
+# include <dirent.h>
 # include "vector.h"
 # include "utils.h"
 # include "ft_ls.h"
-# include <dirent.h>
+# include "error.h"
 
 vector_s* vector_make(size_t capacity) {
     vector_s* vector = malloc(sizeof(vector_s));
@@ -40,18 +41,23 @@ vector_s* vector_push(vector_s* vector, struct dirent* elem, const char* parent_
         if (ft_realloc(vector))
             return NULL;
 
-    dirent_stat_s* el = malloc(sizeof(dirent_stat_s));
+    dirent_stat_s* el = ft_malloc_zero(sizeof(dirent_stat_s));
     if (!el)
         return NULL;
+
     const char* fullpath = ft_strjoin_path(parent_path, elem->d_name);
     if (!fullpath) {
         free(el);
         return NULL;
     }
     if (lstat(fullpath, &el->stat)) {
-        free((char*)fullpath);
-        free(el);
-        return NULL;
+        if (errno == EACCES) {
+            el->error = make_error_str(NO_ACCESS, fullpath);
+        } else {
+            free((char*)fullpath);
+            free(el);
+            return NULL;
+        }
     }
     free((char*)fullpath);
     el->elem = elem;
@@ -75,6 +81,11 @@ static int compare_time(dirent_stat_s* a, dirent_stat_s* b) {
 }
 
 static int compare_helper(dirent_stat_s* a, dirent_stat_s* b) {
+    // lstat failed because of no permissions, sort in alphabetical order only.
+    if (a->error || b->error) {
+        return ft_strcmp_dot(a->elem->d_name, b->elem->d_name) > 0;
+    }
+    // normal case
     if (ft_ls.selected_options & OPTION_SORT_TIME) {
         return compare_time(a, b);
     } else {
@@ -102,8 +113,10 @@ void vector_sort(vector_s* vector) {
 }
 
 void vector_free(vector_s* vector) {
-    for (size_t i = 0; i < vector->size; i++)
+    for (size_t i = 0; i < vector->size; i++) {
+        free(vector->content[i]->error);
         free(vector->content[i]);
+    }
     free(vector->content);
     free(vector);
 }

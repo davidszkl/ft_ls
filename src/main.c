@@ -138,7 +138,6 @@ int main(int ac, char** av) {
         return 1;
     if (parse_arguments(ac, av) != 0)
         return ft_free(ft_ls.options[4].values, 1);
-
     if (!init_visited(&ft_ls.visited))
         dir_free(ft_ls.dirs, 1);
 

@@ -26,17 +26,25 @@ static int init_dir_helpers(char** dir_path,  dir_s** dir_struct, dir_s* directo
     return 0;
 }
 
-static int handle_dir_error(dir_s* directories, dir_s* dir_struct, const char* dir_path, size_t* dir_idx) {
+static int handle_dir_error(dir_s* dir_struct, const char* dir_path, char* dir_name, size_t* dir_idx) {
+    const int option_all = (&ft_ls)->selected_options & OPTION_ALL;
     if (errno == EACCES || errno == ENOTDIR || errno == ENOENT) {
         if (errno == EACCES) {
+            dir_struct->name = ft_strdup(dir_name, -1);
+            if (!dir_struct->name)
+                return 1;
+            if ((is_dot_folder(dir_struct->name) || is_hidden_folder(dir_struct->name)) && !option_all) {
+                *dir_idx += 1;
+                return 0;
+            }
+                
             dir_struct->error = make_error_str(NO_OPEN, dir_path);
+            if (!dir_struct->error)
+                return 1;
             *dir_idx += 1;
-            directories->count = *dir_idx;
         }
-        free((char*)dir_path);
         return 0;
     } else {
-        free((char*)dir_path);
         return 1;
     }
 }
@@ -54,10 +62,9 @@ static int fill_dir_struct(dir_s* dir_struct, char* dir_path, vector_s* entry_ve
 }
 
 dir_s* get_directories(vector_s* entry_vector) {
-    dir_s* directories = malloc(sizeof(dir_s) * (entry_vector->size + 1));
+    dir_s* directories = ft_malloc_zero(sizeof(dir_s) * (entry_vector->size + 1));
     if (!directories) 
         return NULL;
-    ft_memset(directories, 0, sizeof(dir_s) * (entry_vector->size + 1));
 
     size_t dir_idx = 0;
     for (size_t i = 0; i < entry_vector->size; i++) {
@@ -72,27 +79,29 @@ dir_s* get_directories(vector_s* entry_vector) {
         // open dir and handle error
         DIR* directory = opendir(dir_path);
         if (directory == NULL) {
-            if (handle_dir_error(directories, dir_struct, dir_path, &dir_idx) == 0) continue;
-            else continue;
+            if (handle_dir_error(dir_struct, dir_path, entry_vector->content[i]->elem->d_name, &dir_idx)) {
+                free((char*)dir_path);
+                closedir(dir_struct->dir);
+                dir_free(directories, 1);
+                return NULL;
+            }
+            free((char*)dir_path);
+            continue;
         }
 
-        // fill up dir structure
+        // fill up dir structure, even if directory is NULL
         if (fill_dir_struct(dir_struct, dir_path, entry_vector, directory, i)) {
             free((char*)dir_path);
             closedir(dir_struct->dir);
             dir_free(directories, 1);
             return NULL;
         }
+
+        dir_idx++;
         free((char*)dir_path);
-        directories->count = ++dir_idx;
     }
 
-    if (!(directories->count)) {
-        directories->dir = NULL;
-        directories->name = NULL;
-        directories->error = NULL;
-        ft_memset(&directories->stat, 0, sizeof(struct stat));
-    }
+    directories->count = dir_idx;
     return directories;
 }
 

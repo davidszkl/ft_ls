@@ -2,4 +2,5 @@
 obj
 build
 ft_ls
-test/results
+test/*
+!test/test.py
