@@ -20,6 +20,52 @@ char* ft_strdup(const char* str, int size)
     return rval;
 }
 
+char* ft_strjoin(const char* str1, const char* str2)
+{
+    if (!str1 || !str2)
+        return NULL;
+    char* rval = malloc(ft_strlen(str1) + ft_strlen(str2) + 1);
+    char* rval_initial = rval;
+    if (!rval)
+        return NULL;
+    while (*str1)
+        *rval++ = *str1++;
+    while (*str2)
+        *rval++ = *str2++;
+    *rval = '\0';
+    return rval_initial;
+}
+
+char* ft_strjoin_path(const char* str1, const char* str2)
+{
+    if (!str1 || !str2)
+        return NULL;
+    char* rval = malloc(ft_strlen(str1) + ft_strlen(str2) + 2);
+    if (!rval)
+        return NULL;
+    char* rval_initial = rval;
+    while (*str1)
+        *rval++ = *str1++;
+    *rval++ = '/';
+    while (*str2)
+        *rval++ = *str2++;
+    *rval = '\0';
+    return rval_initial;
+}
+
+char* ft_substr(const char* str, size_t begin, size_t end)
+{
+    if (end < begin)
+        return NULL;
+    char* rval = malloc(sizeof(char) * (end - begin + 1));
+    if (!rval)
+        return NULL;
+    char* it = rval;
+    while(begin < end)
+        *it++ = str[begin++];
+    *it = '\0';
+    return rval;
+}
 
 void* ft_memset(void* mem, int c, size_t n)
 {
@@ -29,7 +75,7 @@ void* ft_memset(void* mem, int c, size_t n)
     return mem;
 }
 
-void *ft_memcpy(void *dst, const void *src, size_t n)
+void* ft_memcpy(void *dst, const void *src, size_t n)
 {
     if (!dst || !src)
         return NULL;
@@ -40,4 +86,13 @@ void *ft_memcpy(void *dst, const void *src, size_t n)
     }
 
     return dst;
+}
+
+void* ft_malloc_zero(size_t size)
+{
+    void* rval = malloc(size);
+    if (!rval)
+        return NULL;
+    ft_memset(rval, 0, size);
+    return rval;
 }

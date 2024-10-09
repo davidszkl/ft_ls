@@ -1,13 +1,10 @@
-# include "ft_ls.h"
-# include "vector.h"
 # include "directory.h"
-# include "error.h"
 
-int is_dir(struct dirent* entry) {
+static int is_dir(struct dirent* entry) {
     return opendir(entry->d_name) != NULL || errno != ENOTDIR;
 }
 
-int dir_count(vector_s* entry_vector) {
+static int dir_count(vector_s* entry_vector) {
     int dircount = 0;
     for (size_t i = 0; i < entry_vector->size; i++) {
         dircount += is_dir(entry_vector->content[i]->elem);

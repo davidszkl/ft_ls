@@ -1,8 +1,4 @@
-# include <dirent.h>
 # include "vector.h"
-# include "utils.h"
-# include "ft_ls.h"
-# include "error.h"
 
 vector_s* vector_make(size_t capacity) {
     vector_s* vector = malloc(sizeof(vector_s));

@@ -38,6 +38,16 @@ int ft_strlen(const char* str)
     return len;
 }
 
+int numberlen(int nbr)
+{
+    int rval = 1;
+    while (nbr >= 10) {
+        rval++;
+        nbr /= 10;
+    }
+    return rval;
+}
+
 const char* ft_find_str(const char* str, const char* to_find)
 {
     if (!str)
@@ -68,4 +78,34 @@ const char* ft_strchr(const char c, const char* str)
     while (*str && *str != c)
         str++;
     return *str ? str : NULL;
+}
+
+int ft_strcmp(const char* str1, const char* str2)
+{
+    if (!str1 || !str2)
+        return 1;
+    while (*str1 && *str2) {
+        if (*str1 != *str2)
+            return *str1 - *str2;
+        str1++;
+        str2++;
+    }
+    return *str1 - *str2;
+}
+
+int ft_strcmp_dot(const char* str1, const char* str2)
+{
+    // strcmp but dot is prioritised
+    if (!str1 || !str2)
+        return 1;
+    while (*str1 && *str2) {
+        if (*str1 != *str2) {
+            if (*str1 == '.') return 0;
+            if (*str2 == '.') return 1;
+            return  *str1 - *str2;
+        }
+        str1++;
+        str2++;
+    }
+    return *str1 - *str2;
 }

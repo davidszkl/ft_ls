@@ -1,6 +1,5 @@
 # pragma once
 # include "ft_ls.h"
-# include "ft_printf.h"
-# include "utils.h"
+# include "directory.h"
 
-int output(DIR* dir, const char* parent_path, int first);
+int output(DIR* dir, int first);

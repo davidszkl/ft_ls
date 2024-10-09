@@ -1,8 +1,4 @@
-# include "ft_ls.h"
 # include "parser.h"
-# include "utils.h"
-# include "directory.h"
-# include "error.h"
 
 static int set_option_short(const char option) {
     for (size_t i = 0; i < (&ft_ls)->options_count; i++) {

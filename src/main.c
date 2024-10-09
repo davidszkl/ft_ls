@@ -1,9 +1,6 @@
-# include <stdlib.h>
-# include <stdio.h>
 # include "main.h"
-# include "utils.h"
 
-int test_printf() {
+static int test_printf() {
     ft_printf("testing no specifier\n");
     ft_printf("1\n");
     ft_printf("123456789\n");
@@ -153,7 +150,7 @@ int main(int ac, char** av) {
         if (add_ino(&ft_ls.visited, ft_ls.dirs[i].stat.st_ino))
             break;
         ft_ls.parent_path = ft_ls.dirs[i].name;
-        if (output(ft_ls.dirs[i].dir, ft_ls.dirs[i].name, 1) != 0)
+        if (output(ft_ls.dirs[i].dir, 1) != 0)
             break;
     }
     

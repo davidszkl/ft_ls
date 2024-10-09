@@ -1,5 +1,6 @@
 # pragma once
 # include "ft_ls.h"
+# include "error.h"
 
 typedef struct dirent_stat_t {
     struct dirent* elem;
@@ -12,7 +13,6 @@ typedef struct vector_s {
     size_t size;
     size_t capacity;
 } vector_s;
-
 
 vector_s* vector_make(size_t capacity);
 vector_s* vector_push(vector_s* vector, struct dirent* elem, const char* parent_path);

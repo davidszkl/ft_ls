@@ -1,5 +1,4 @@
-# include "directory.h"
-#include <dirent.h>
+# include "output.h"
 
 static vector_s* make_entry_vector(DIR* dir) {
     const int option_all = (&ft_ls)->selected_options & OPTION_ALL;

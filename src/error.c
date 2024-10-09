@@ -1,6 +1,4 @@
 # include "ft_ls.h"
-# include "ft_printf.h"
-# include "error.h"
 
 int make_error(const char* ft_ls_error, const char* error_string, int rval) {
     const char* errno_error = strerror(errno);
