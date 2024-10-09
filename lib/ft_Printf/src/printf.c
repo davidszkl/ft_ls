@@ -1,16 +1,15 @@
 # include "ft_printf.h"
-// # include "utils.h"
 
 # define BUFFER_SIZE 10
 # define SUPPORTED_FLAGS "%dicsxXp"
 
-char* free_buffer(buffer_s* buffer) {
+static char* free_buffer(buffer_s* buffer) {
     free(buffer->bytes);
     free(buffer);
     return NULL;
 }
 
-buffer_s* init_buffer() {
+static buffer_s* init_buffer() {
     buffer_s* buffer = (buffer_s*)malloc(sizeof(buffer_s));
     if (!buffer)
         return NULL;
@@ -23,7 +22,7 @@ buffer_s* init_buffer() {
     return buffer;
 }
 
-int _get_flags(token_s* token, const char* str) {
+static int _get_flags(token_s* token, const char* str) {
     int rval = 0;
     while (*str) {
         if (*str == '0')
@@ -40,7 +39,7 @@ int _get_flags(token_s* token, const char* str) {
     return -1;
 }
 
-int _get_width(token_s* token, const char* str) {
+static int _get_width(token_s* token, const char* str) {
     if (ft_strchr(*str, SUPPORTED_FLAGS)) {
         token->width = 0;
         return 0;
@@ -60,14 +59,14 @@ int _get_width(token_s* token, const char* str) {
     return rval;
 }
 
-int _get_specifier(token_s* token, const char* str) {
+static int _get_specifier(token_s* token, const char* str) {
     if (!*str)
         return -1;
     token->specifier = *str;
     return 1;
 }
 
-char* _get_token_string(const char* str) {
+static char* _get_token_string(const char* str) {
     const char* tmp = str;
     size_t len = 1; // skip the first '%'
     while (tmp[len] && !ft_strchr(tmp[len], SUPPORTED_FLAGS))
@@ -77,7 +76,7 @@ char* _get_token_string(const char* str) {
     return ft_strdup(str, len + 1);
 }
 
-token_s* init_token(const char* token_str) {
+static token_s* init_token(const char* token_str) {
     const char* tmp = token_str;
     int jump = 0;
     token_s* token = (token_s*)malloc(sizeof(token_s));
@@ -109,7 +108,7 @@ token_s* init_token(const char* token_str) {
     return token;
 }
 
-token_s* get_token(const char* str) {
+static token_s* get_token(const char* str) {
     char* token_str = _get_token_string(str);
     if (!token_str)
         return NULL;
@@ -118,7 +117,7 @@ token_s* get_token(const char* str) {
     return token;
 }
 
-const char* get_str_to_write(char specifier, va_list list) {
+static const char* get_str_to_write(char specifier, va_list list) {
     char* str_to_write = NULL;
     if (specifier == 'c') {
         char c = va_arg(list, int);
@@ -161,7 +160,7 @@ const char* get_str_to_write(char specifier, va_list list) {
 	// 	return measure_hex(va_arg(list, unsigned long int)) + 2;
 }
 
-char* resize_buffer(buffer_s* buffer, size_t required_size) {
+static char* resize_buffer(buffer_s* buffer, size_t required_size) {
     size_t new_capacity = buffer->capacity + required_size + BUFFER_SIZE + 1;
     char* new_buffer = malloc(sizeof(char) * new_capacity);
     if (!new_buffer)
@@ -175,7 +174,7 @@ char* resize_buffer(buffer_s* buffer, size_t required_size) {
     return new_buffer;
 }
 
-int write_to_buffer(buffer_s* buffer, const char* str, size_t len) {
+static int write_to_buffer(buffer_s* buffer, const char* str, size_t len) {
     if (buffer->size + len > buffer->capacity)
         if (!resize_buffer(buffer, len)) return -1;
     ft_memcpy(buffer->bytes + buffer->size, str, len);
@@ -183,7 +182,7 @@ int write_to_buffer(buffer_s* buffer, const char* str, size_t len) {
     return 0;
 }
 
-const char* get_sized_str(const char* str, const token_s* token){
+static const char* get_sized_str(const char* str, const token_s* token){
     size_t strlen = ft_strlen(str);
     size_t width = strlen > token->width ? strlen : token->width;
     char* sized_str = malloc((width + 1) * sizeof(char));
@@ -211,7 +210,7 @@ const char* get_sized_str(const char* str, const token_s* token){
     return rval;
 }
 
-int write_token(buffer_s* buffer, token_s* token, va_list list) {
+static int write_token(buffer_s* buffer, token_s* token, va_list list) {
     const char *str_to_write = get_str_to_write(token->specifier, list);
     if (!str_to_write)
         return -1;
@@ -229,7 +228,7 @@ int write_token(buffer_s* buffer, token_s* token, va_list list) {
     return len;
 }
 
-char* format_string(const char* str, va_list list, buffer_s* buffer) {
+static char* format_string(const char* str, va_list list, buffer_s* buffer) {
     // read through string, write characters to buffer until size, if size is reached, re-allocate. Stop at '%' character and handle.
     while (*str) {
         if (*str == '%') {

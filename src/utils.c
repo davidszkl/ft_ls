@@ -1,13 +1,6 @@
 # include "ft_printf.h"
 # include "ft_ls.h"
 
-void* ft_memset(void* mem, int c, size_t n) {
-    unsigned char* p = (unsigned char*) mem; 
-    while(n--)
-        *p++ = (unsigned char)c;
-    return mem;
-}
-
 int ft_strcmp(const char* str1, const char* str2) {
     if (!str1 || !str2)
         return 1;

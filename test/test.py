@@ -44,7 +44,8 @@ tests: List[Tuple[bool, bool, List[str]]] = [
     (False, False, ["-rt", "dir1", "dir2"]),
     (False, True, ["-R", "dir1", "dir2"]),
     (False, False, ["-recursive", "dir1", "dir2"]),
-    (False, True, ["--recursive", "dir1", "dir2"])
+    (False, True, ["--recursive", "dir1", "dir2"]),
+    (False, True, ["--recursive", "symlinkdir"])
 ]
 
 def normalize_expected(expected: str, long: bool, recursive: bool):
@@ -153,21 +154,25 @@ def clean_test_tree():
             continue
         if os.path.isdir(item):
             os.system(f"sudo rm -rf '{item}'")
-            pass
-        elif os.path.isfile(item):
+        elif os.path.isfile(item) or os.path.islink(item):
             os.system(f"sudo rm -f '{item}'")
 
 def make_test_tree():
+    symlinks = []
     def recursive_make_tree(directory, path):
         for file in directory.get("files", []):
-            pathname = os.path.join(path, file["name"])
             try:
-                open(pathname, "w", int(file["perms"], 8))
+                pathname = os.path.join(path, file["name"])
+                symlink = file.get("symlink")
+                if symlink:
+                    symlinks.append((symlink, pathname))
+                else:
+                    open(pathname, "w", int(file["perms"], 8))
             except PermissionError:
                 continue
         for directory in directory.get("directories", []):
-            pathname = os.path.join(path, directory["name"])
             try:
+                pathname = os.path.join(path, directory["name"])
                 os.makedirs(pathname, int(directory["perms"], 8), exist_ok=True)
             except PermissionError:
                 continue
@@ -176,6 +181,10 @@ def make_test_tree():
     with open (os.path.join(os.path.dirname(os.path.abspath(__file__)), "test.json"), "r") as file:
         tree = json.load(file)
         recursive_make_tree(tree, os.path.dirname(os.path.abspath(__file__)))
+
+    if symlinks:
+        for src, dst in symlinks:
+            os.symlink(src, dst)
 
 if __name__ == "__main__":
     if len(sys.argv) > 1:
