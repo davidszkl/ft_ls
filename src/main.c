@@ -1,6 +1,6 @@
 # include "main.h"
 
-static int test_printf() {
+int test_printf() {
     ft_printf("testing no specifier\n");
     ft_printf("1\n");
     ft_printf("123456789\n");
@@ -117,7 +117,7 @@ ft_ls_s ft_ls = {
 };
 
 static int init_ft_ls() {
-    ft_ls.options[4].values = malloc(6 * sizeof(char *));
+    ft_ls.options[4].values = ft_malloc_zero(6 * sizeof(char *));
     if (ft_ls.options[4].values == NULL)
         return 1;
     ft_ls.options[4].values[0] = "atime";

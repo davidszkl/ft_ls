@@ -1,12 +1,12 @@
 # include "vector.h"
 
 vector_s* vector_make(size_t capacity) {
-    vector_s* vector = malloc(sizeof(vector_s));
+    vector_s* vector = ft_malloc_zero(sizeof(vector_s));
     if (!vector) {
         return NULL;
     }
 
-    vector->content = malloc(sizeof(dirent_stat_s*) * capacity);
+    vector->content = ft_malloc_zero(sizeof(dirent_stat_s) * capacity);
     if (!vector->content) {
         ft_free(vector, 1);
         return NULL;
@@ -21,11 +21,11 @@ vector_s* vector_make(size_t capacity) {
 static int ft_realloc(vector_s* vector) {
     size_t old_capacity = vector->capacity;
     void* old_content = vector->content;
-    void* new = malloc(sizeof(dirent_stat_s*) * old_capacity * 2);
+    void* new = ft_malloc_zero(sizeof(dirent_stat_s) * old_capacity * 2);
     if (!new) {
         return 1;
     }
-    ft_memcpy(new, old_content, (size_t)((sizeof(dirent_stat_s*) * vector->size) / sizeof(char)));
+    ft_memcpy(new, old_content, (size_t)((sizeof(dirent_stat_s) * vector->size) / sizeof(char)));
     vector->content = new;
     vector->capacity *= 2;
 
@@ -37,26 +37,24 @@ vector_s* vector_push(vector_s* vector, struct dirent* elem, const char* parent_
         if (ft_realloc(vector))
             return NULL;
 
-    dirent_stat_s* el = ft_malloc_zero(sizeof(dirent_stat_s));
-    if (!el)
-        return NULL;
+    // dirent_stat_s el = ft_malloc_zero(sizeof(dirent_stat_s));
+    // if (!el)
+    //     return NULL;
+    dirent_stat_s el = {0};
 
     const char* fullpath = ft_strjoin_path(parent_path, elem->d_name);
-    if (!fullpath) {
-        free(el);
+    if (!fullpath)
         return NULL;
-    }
-    if (lstat(fullpath, &el->stat)) {
+    if (lstat(fullpath, &el.stat)) {
         if (errno == EACCES) {
-            el->error = make_error_str(NO_ACCESS, fullpath);
+            el.error = make_error_str(NO_ACCESS, fullpath);
         } else {
             free((char*)fullpath);
-            free(el);
             return NULL;
         }
     }
     free((char*)fullpath);
-    el->elem = elem;
+    el.elem = elem;
     vector->content[vector->size++] = el;
 
     return vector;
@@ -89,15 +87,15 @@ static int compare_helper(dirent_stat_s* a, dirent_stat_s* b) {
     }
 }
 
-static void sort_compare(dirent_stat_s** a, dirent_stat_s** b) {
-    dirent_stat_s* small;
-    dirent_stat_s* big;
-    int comp = compare_helper(*a, *b);
+static void sort_compare(dirent_stat_s* a, dirent_stat_s* b) {
+    dirent_stat_s small = {0};
+    dirent_stat_s big = {0};
+    int comp = compare_helper(a, b);
     int reverse_sort = ft_ls.selected_options & OPTION_REVERSE_SORT;
-    small = comp ? *a : *b;
-    big = comp ? *b : *a;
-    *a = reverse_sort ? small : big;
-    *b = reverse_sort ? big : small;
+    small = comp ? *b : *a;
+    big = comp ? *a : *b;
+    *a = reverse_sort ? big : small;
+    *b = reverse_sort ? small : big;
 }
 
 void vector_sort(vector_s* vector) {
@@ -110,8 +108,7 @@ void vector_sort(vector_s* vector) {
 
 void vector_free(vector_s* vector) {
     for (size_t i = 0; i < vector->size; i++) {
-        free(vector->content[i]->error);
-        free(vector->content[i]);
+        free(vector->content[i].error);
     }
     free(vector->content);
     free(vector);
@@ -119,10 +116,10 @@ void vector_free(vector_s* vector) {
 
 // ino
 visited_ino_s* init_visited(visited_ino_s* visited) {
-    visited->ino = malloc(sizeof(ino_t) * 25);
+    visited->ino = ft_malloc_zero(sizeof(ino_t) * INITIAL_INO_CAPACITY);
     if (!visited->ino)
         return NULL;
-    visited->capacity = 25;
+    visited->capacity = INITIAL_INO_CAPACITY;
     visited->size = 0;
 
     return visited;
@@ -130,7 +127,7 @@ visited_ino_s* init_visited(visited_ino_s* visited) {
 
 int add_ino(visited_ino_s* visited, ino_t ino) { 
     if (visited->size == visited->capacity) {
-        ino_t* new = malloc(sizeof(ino_t) * visited->capacity * 2);
+        ino_t* new = ft_malloc_zero(sizeof(ino_t) * visited->capacity * 2);
         if (!new)
             return 1;
         ft_memcpy(new, visited->ino, (sizeof(ino_t) * visited->size));

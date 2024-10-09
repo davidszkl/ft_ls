@@ -1,25 +1,10 @@
 # include "directory.h"
 
-static int is_dir(struct dirent* entry) {
-    return opendir(entry->d_name) != NULL || errno != ENOTDIR;
-}
-
-static int dir_count(vector_s* entry_vector) {
-    int dircount = 0;
-    for (size_t i = 0; i < entry_vector->size; i++) {
-        dircount += is_dir(entry_vector->content[i]->elem);
-    }
-    return dircount;
-}
-
 static int init_dir_helpers(char** dir_path,  dir_s** dir_struct, dir_s* directories, vector_s* entry_vector, size_t i, size_t dir_idx) {
-    *dir_path = ft_strjoin_path(ft_ls.parent_path, entry_vector->content[i]->elem->d_name);
+    *dir_path = ft_strjoin_path(ft_ls.parent_path, entry_vector->content[i].elem->d_name);
     if (!dir_path)
         return 1;
     *dir_struct = &directories[dir_idx];
-    (*dir_struct)->error = NULL;
-    (*dir_struct)->dir = NULL;
-    (*dir_struct)->name = NULL;
     return 0;
 }
 
@@ -51,7 +36,7 @@ static int fill_dir_struct(dir_s* dir_struct, char* dir_path, vector_s* entry_ve
     if (lstat(dir_path, &dir_struct->stat))
         return 1;
     
-    dir_struct->name = ft_strdup(entry_vector->content[i]->elem->d_name, -1);
+    dir_struct->name = ft_strdup(entry_vector->content[i].elem->d_name, -1);
     if (!dir_struct->name) 
         return 1;
 
@@ -66,8 +51,8 @@ dir_s* get_directories(vector_s* entry_vector) {
     size_t dir_idx = 0;
     for (size_t i = 0; i < entry_vector->size; i++) {
         // init dir_struct and dir_path
-        char* dir_path;
-        dir_s* dir_struct;
+        char* dir_path = NULL;
+        dir_s* dir_struct = NULL;
         if (init_dir_helpers(&dir_path, &dir_struct, directories, entry_vector, i, dir_idx)) {
             free(directories);
             return NULL;
@@ -76,7 +61,7 @@ dir_s* get_directories(vector_s* entry_vector) {
         // open dir and handle error
         DIR* directory = opendir(dir_path);
         if (directory == NULL) {
-            if (handle_dir_error(dir_struct, dir_path, entry_vector->content[i]->elem->d_name, &dir_idx)) {
+            if (handle_dir_error(dir_struct, dir_path, entry_vector->content[i].elem->d_name, &dir_idx)) {
                 free((char*)dir_path);
                 closedir(dir_struct->dir);
                 dir_free(directories, 1);

@@ -7,14 +7,13 @@ int ft_free_output_long(output_long_s* output_long, int rval) {
     free(output_long->user);
     free(output_long->group);
     free(output_long->error);
-    free(output_long);
     return rval;
 }
 
-int ft_free_output_long_tab(output_long_s** output_long, int rval) {
-    size_t count = output_long[0]->count ? output_long[0]->count : 1;
+int ft_free_output_long_tab(output_long_s* output_long, int rval) {
+    size_t count = output_long[0].count ? output_long[0].count : 1;
     for (size_t i = 0; i < count; i++) {
-        ft_free_output_long(output_long[i], 0);
+        ft_free_output_long(&output_long[i], 0);
     }
     free(output_long);
     return rval;

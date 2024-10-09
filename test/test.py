@@ -211,3 +211,5 @@ if __name__ == "__main__":
                 errors.append(str(e))
 
     print(f"{'=' * (max_size - 1)}={'=' * 16}==")
+    if errors:
+        print("\n".join(errors))
