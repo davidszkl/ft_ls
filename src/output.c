@@ -2,7 +2,7 @@
 
 static vector_s* make_entry_vector(DIR* dir) {
     const int option_all = (&ft_ls)->selected_options & OPTION_ALL;
-    vector_s* entry_vector = vector_make(25);
+    vector_s* entry_vector = vector_make(INITIAL_VECTOR_CAPACITY);
     struct dirent* entry;
 
     if (!entry_vector) {

@@ -119,10 +119,10 @@ void vector_free(vector_s* vector) {
 
 // ino
 visited_ino_s* init_visited(visited_ino_s* visited) {
-    visited->ino = malloc(sizeof(ino_t) * 25);
+    visited->ino = malloc(sizeof(ino_t) * INITIAL_INO_CAPACITY);
     if (!visited->ino)
         return NULL;
-    visited->capacity = 25;
+    visited->capacity = INITIAL_INO_CAPACITY;
     visited->size = 0;
 
     return visited;

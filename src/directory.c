@@ -1,17 +1,5 @@
 # include "directory.h"
 
-static int is_dir(struct dirent* entry) {
-    return opendir(entry->d_name) != NULL || errno != ENOTDIR;
-}
-
-static int dir_count(vector_s* entry_vector) {
-    int dircount = 0;
-    for (size_t i = 0; i < entry_vector->size; i++) {
-        dircount += is_dir(entry_vector->content[i]->elem);
-    }
-    return dircount;
-}
-
 static int init_dir_helpers(char** dir_path,  dir_s** dir_struct, dir_s* directories, vector_s* entry_vector, size_t i, size_t dir_idx) {
     *dir_path = ft_strjoin_path(ft_ls.parent_path, entry_vector->content[i]->elem->d_name);
     if (!dir_path)

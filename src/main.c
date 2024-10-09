@@ -1,6 +1,6 @@
 # include "main.h"
 
-static int test_printf() {
+int test_printf() {
     ft_printf("testing no specifier\n");
     ft_printf("1\n");
     ft_printf("123456789\n");
