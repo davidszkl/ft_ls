@@ -2,8 +2,8 @@
 # include "ft_ls.h"
 # include "error.h"
 
-# define INITIAL_VECTOR_CAPACITY 15
-# define INITIAL_INO_CAPACITY 15
+# define INITIAL_VECTOR_CAPACITY 25
+# define INITIAL_INO_CAPACITY 25
 
 typedef struct dirent_stat_t {
     struct dirent* elem;

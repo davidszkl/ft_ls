@@ -1,0 +1,60 @@
+{
+    "files": [
+        {"name": "file1", "perms": "777"},
+        {"name": "file2", "perms": "777"},
+        {"name": "file3", "perms": "777"},
+        {"name": ".file4", "perms": "777"},
+        {"name": "symlink_here", "perms": "777", "symlink": "./file1"},
+        {"name": "symlink_down", "perms": "777", "symlink": "dir1/file1"},
+        {"name": "symlink_other", "perms": "777", "symlink": "/bin/ls"},
+        {"name": "symlink_dir_here", "perms": "777", "symlink": "."},
+        {"name": "symlink_dir_up", "perms": "777", "symlink": ".."},
+        {"name": "symlink_dir_down", "perms": "777", "symlink": "permsdir/dir1"},
+        {"name": "symlink_dir_other", "perms": "777", "symlink": "/bin"}
+    ],
+    "directories": [
+        {
+            "name": "emptydir", "perms": "777", "files": []
+        },
+        {
+            "name": "dir1", "perms": "777", "files": [
+                {"name": "file1", "perms": "777"},
+                {"name": "file2", "perms": "777"},
+                {"name": "file3", "perms": "777"},
+                {"name": ".file4", "perms": "777"}
+            ]
+        },
+        {
+            "name": "dir2", "perms": "777", "files": [
+                {"name": "file1", "perms": "777"},
+                {"name": "file2", "perms": "777"},
+                {"name": "file3", "perms": "777"},
+                {"name": ".file4", "perms": "777"}
+            ]
+        },
+        {
+            "name": "permsdir", "perms": "777",
+            "files": [
+                {"name": "file1", "perms": "777"},
+                {"name": "file2", "perms": "1411"}
+            ],
+            "directories": [
+                {"name": "dir1", "perms": "777"},
+                {"name": ".dir2", "perms": "777"},
+                {"name": "dir3", "perms": "000"}
+            ]
+        },
+        {
+            "name": "symlinkdir", "perms": "777",
+            "files": [
+                {"name": "symlink_here", "perms": "777", "symlink": "./file1"},
+                {"name": "symlink_down", "perms": "777", "symlink": "dir1/file1"},
+                {"name": "symlink_other", "perms": "777", "symlink": "/bin/ls"},
+                {"name": "symlink_dir_here", "perms": "777", "symlink": "."},
+                {"name": "symlink_dir_up", "perms": "777", "symlink": ".."},
+                {"name": "symlink_dir_down", "perms": "777", "symlink": "permsdir/dir1"},
+                {"name": "symlink_dir_other", "perms": "777", "symlink": "/bin"}
+            ]
+        }
+    ]
+}

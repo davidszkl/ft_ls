@@ -50,15 +50,16 @@ typedef struct ft_ls_t {
 } ft_ls_s;
 
 typedef struct output_long_t {
-    char* perms;
+    char perms[11];
     nlink_t links;
-    char* user;
-    char* group;
+    char user[_SC_LOGIN_NAME_MAX];
+    char group[_SC_LOGIN_NAME_MAX];
     off_t size;
-    char* datetime;
+    char datetime[12];
     char* fname;
     char* error;
     size_t count;
+    int free_fname;
 } output_long_s;
 
 extern ft_ls_s ft_ls;

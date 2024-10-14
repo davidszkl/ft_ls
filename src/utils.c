@@ -1,11 +1,8 @@
 # include "utils.h"
 
 int ft_free_output_long(output_long_s* output_long, int rval) {
-    free(output_long->perms);
-    free(output_long->datetime);
-    free(output_long->fname);
-    free(output_long->user);
-    free(output_long->group);
+    if (output_long->free_fname)
+        free(output_long->fname);
     free(output_long->error);
     return rval;
 }

@@ -4,3 +4,4 @@ build
 ft_ls
 test/*
 !test/test.py
+!test/test.json
