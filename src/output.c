@@ -20,79 +20,74 @@ static vector_s* make_entry_vector(DIR* dir) {
     return entry_vector;
 }
 
-static char* type_perm_string(dirent_stat_s* stat) {
-    size_t size = stat->error ? 2 : 11;
-    char* str = ft_malloc_zero(sizeof(char) * size);
-    if (!str)
-        return NULL;
+static char* type_perm_string(dirent_stat_s* stat, char* perms_field) {
     mode_t mode = stat->stat.st_mode;
 
     // file type
     if ((mode && S_ISREG(mode)) || (stat->error && stat->elem->d_type == DT_REG)) {
-        str[0] = '-';
+        perms_field[0] = '-';
     } else if ((mode && S_ISDIR(mode)) || (stat->error && stat->elem->d_type == DT_DIR)) {
-        str[0] = 'd';
+        perms_field[0] = 'd';
     } else if ((mode && S_ISCHR(mode)) || (stat->error && stat->elem->d_type == DT_CHR)) {
-        str[0] = 'c';
+        perms_field[0] = 'c';
     } else if ((mode && S_ISBLK(mode)) || (stat->error && stat->elem->d_type == DT_BLK)) {
-        str[0] = 'b';
+        perms_field[0] = 'b';
     } else if ((mode && S_ISFIFO(mode)) || (stat->error && stat->elem->d_type == DT_FIFO)) {
-        str[0] = 'p';
+        perms_field[0] = 'p';
     } else if ((mode && S_ISLNK(mode)) || (stat->error && stat->elem->d_type == DT_LNK)) {
-        str[0] = 'l';
+        perms_field[0] = 'l';
     } else if ((mode && S_ISSOCK(mode)) || (stat->error && stat->elem->d_type == DT_SOCK)) {
-        str[0] = 's';
+        perms_field[0] = 's';
     } else {
-        str[0] = '?';
+        perms_field[0] = '?';
     }
 
     if (stat->error) {
-        str[1] = '\0';
-        return str;
+        perms_field[1] = '\0';
+        return perms_field;
     }
 
     // user permissions
-    str[1] = mode & S_IRUSR ? 'r' : '-';
-    str[2] = mode & S_IWUSR ? 'w' : '-';
-    str[3] = mode & S_IXUSR ? 'x' : '-';
+    perms_field[1] = mode & S_IRUSR ? 'r' : '-';
+    perms_field[2] = mode & S_IWUSR ? 'w' : '-';
+    perms_field[3] = mode & S_IXUSR ? 'x' : '-';
 
     // group permissions
-    str[4] = mode & S_IRGRP ? 'r' : '-';
-    str[5] = mode & S_IWGRP ? 'w' : '-';
-    str[6] = mode & S_IXGRP ? 'x' : '-';
+    perms_field[4] = mode & S_IRGRP ? 'r' : '-';
+    perms_field[5] = mode & S_IWGRP ? 'w' : '-';
+    perms_field[6] = mode & S_IXGRP ? 'x' : '-';
 
     // other permissions
-    str[7] = mode & S_IROTH ? 'r' : '-';
-    str[8] = mode & S_IWOTH ? 'w' : '-';
-    str[9] = mode & S_IXOTH ? 'x' : '-';
+    perms_field[7] = mode & S_IROTH ? 'r' : '-';
+    perms_field[8] = mode & S_IWOTH ? 'w' : '-';
+    perms_field[9] = mode & S_IXOTH ? 'x' : '-';
 
     // sticky bit
-    str[9] = mode & S_ISVTX ? 't' : str[9];
+    perms_field[9] = mode & S_ISVTX ? 't' : perms_field[9];
 
-    str[10] = '\0';
-    return str;
+    perms_field[10] = '\0';
+    return perms_field;
 }
 
-static char* user_string(uid_t uid) {
+static char* user_string(uid_t uid, char* user_field) {
     struct passwd* passwd = getpwuid(uid);
     if (!passwd)
         return NULL;
-    return ft_strdup(passwd->pw_name, -1);
+    return ft_memcpy(user_field, passwd->pw_name, -1);
 }
 
-static char* group_string(gid_t gid) {
+static char* group_string(gid_t gid, char* group_field) {
     struct group* group = getgrgid(gid);
     if (!group)
         return NULL;
-    return ft_strdup(group->gr_name, -1);
+    return ft_memcpy(group_field, group->gr_name, -1);
 }
 
-static char* time_string(time_t* time) {
+static char* time_string(time_t* time, char* time_field) {
     char* strtime = ctime(time);
     if (!strtime)
         return NULL;
-    char* rval = ft_substr(strtime, 4, ft_strlen(strtime) - 9);
-    return rval;
+    return ft_memcpy(time_field, strtime + 4, 12);
 }
 
 static char* symbolic_file_string(dirent_stat_s* dir) {
@@ -118,21 +113,21 @@ static char* symbolic_file_string(dirent_stat_s* dir) {
     return rval;
 }
 
-static char* file_string(dirent_stat_s* dir) {
+static char* file_string(dirent_stat_s* dir, int* free_fname) {
     char* rval = NULL;
     if (is_symbolic_link(&dir->stat)) {
         rval = symbolic_file_string(dir);
-    } else {
-        rval = ft_strdup(dir->elem->d_name, -1);
         if (!rval)
             return NULL;
+        *free_fname = 1;
+    } else {
+        rval = dir->elem->d_name;
     }
     return rval;
 }
 
 static output_long_s* create_output_long(dirent_stat_s* stat, output_long_s* output_long) {
-    output_long->perms = type_perm_string(stat);
-    if (!output_long->perms)
+    if (!type_perm_string(stat, output_long->perms))
         return NULL;
 
     if (stat->error) {
@@ -150,27 +145,23 @@ static output_long_s* create_output_long(dirent_stat_s* stat, output_long_s* out
 
     output_long->links = stat->stat.st_nlink;
 
-    output_long->user = user_string(stat->stat.st_uid);
-    if (!output_long->user) {
+    if (!user_string(stat->stat.st_uid, output_long->user)) {
         ft_free_output_long(output_long, 1);
         return NULL;
     }
 
-    output_long->group = group_string(stat->stat.st_uid);
-    if (!output_long->group) {
+    if (!group_string(stat->stat.st_uid, output_long->group)) {
         ft_free_output_long(output_long, 1);
         return NULL;
     }
 
     output_long->size = stat->stat.st_size;
-
-    output_long->datetime = time_string(&stat->stat.st_mtime);
-    if (!output_long->datetime) {
+    if (!time_string(&stat->stat.st_mtime, output_long->datetime)) {
         ft_free_output_long(output_long, 1);
         return NULL;
     }
 
-    output_long->fname = file_string(stat);
+    output_long->fname = file_string(stat, &output_long->free_fname);
     if (!output_long->fname) {
         ft_free_output_long(output_long, 1);
         return NULL;
@@ -193,7 +184,7 @@ static output_long_s* make_output_long_info(const vector_s* entry_vector, size_t
         )
             continue;
         *total_blocks += entry_vector->content[i].stat.st_blocks / 2; // ls displays by default blocks of size 1024;
-        if (!create_output_long(&entry_vector->content[i], &output_info[dir_idx++])) { // warning memory
+        if (!create_output_long(&entry_vector->content[i], &output_info[dir_idx++])) {
             ft_free_output_long_tab(output_info, 1);
             return NULL;
         }
@@ -217,8 +208,10 @@ static int set_max_widths(int* widths, output_long_s* output_info) {
     return 0;
 }
 
+#include <stdio.h>
 static int print_output_long(output_long_s* output_info, int* widths, size_t total_blocks) {
     ft_dprintf(STDOUT_FILENO, "total %d\n", total_blocks);
+    
     char* format_string = NULL;
     ft_sprintf(&format_string, "%%-%ds %%-%dd %%-%ds %%-%ds %%%dd %%%ds %%-s\n", widths[0], widths[1], widths[2], widths[3], widths[4], widths[5]);
     for (size_t i = 0; i < output_info->count; i++) {

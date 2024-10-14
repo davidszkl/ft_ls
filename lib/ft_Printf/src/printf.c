@@ -1,6 +1,6 @@
 # include "ft_printf.h"
 
-# define BUFFER_SIZE 10
+# define BUFFER_SIZE 80
 # define SUPPORTED_FLAGS "%dicsxXp"
 
 static char* free_buffer(buffer_s* buffer) {
@@ -13,10 +13,9 @@ static buffer_s* init_buffer() {
     buffer_s* buffer = (buffer_s*)malloc(sizeof(buffer_s));
     if (!buffer)
         return NULL;
-    buffer->bytes = malloc(sizeof(char) * BUFFER_SIZE + 1);
+    buffer->bytes = ft_malloc_zero(sizeof(char) * BUFFER_SIZE + 1);
     if (!buffer->bytes)
         return ((buffer_s*)free_buffer(buffer));
-    bzero(buffer->bytes, BUFFER_SIZE + 1);
     buffer->capacity = BUFFER_SIZE;
     buffer->size = 0;
     return buffer;
@@ -76,45 +75,42 @@ static char* _get_token_string(const char* str) {
     return ft_strdup(str, len + 1);
 }
 
-static token_s* init_token(const char* token_str) {
+static int init_token(const char* token_str, token_s* token) {
     const char* tmp = token_str;
     int jump = 0;
-    token_s* token = (token_s*)malloc(sizeof(token_s));
-    if (!token)
-        return NULL;
-    bzero(token, sizeof(token_s));
 
     token->padding = ' '; // default value
     token_str++; // skip the '%'
     jump = _get_flags(token, token_str);
     if (jump < 0) {
         free(token);
-        return NULL;
+        return 1;
     }
     token_str += jump;
     jump = _get_width(token, token_str);
     if (jump < 0) {
         free(token);
-        return NULL;
+        return 1;
     }
     token_str += jump;
     jump = _get_specifier(token, token_str);
     if (jump < 0) {
         free(token);
-        return NULL;
+        return 1;
     }
     token_str += jump;
     token->size = (token_str - tmp) / sizeof(char);
-    return token;
+    return 0;
 }
 
-static token_s* get_token(const char* str) {
+static int get_token(const char* str, token_s* token) {
     char* token_str = _get_token_string(str);
     if (!token_str)
-        return NULL;
-    token_s* token = init_token(token_str);
+        return 1;
+    if (init_token(token_str, token))
+        return 1;
     free(token_str);
-    return token;
+    return 0;
 }
 
 static const char* get_str_to_write(char specifier, va_list list) {
@@ -230,17 +226,14 @@ static int write_token(buffer_s* buffer, token_s* token, va_list list) {
 
 static char* format_string(const char* str, va_list list, buffer_s* buffer) {
     // read through string, write characters to buffer until size, if size is reached, re-allocate. Stop at '%' character and handle.
+    token_s token = {0};
     while (*str) {
         if (*str == '%') {
-            token_s *token = get_token(str);
-            if (!token)
+            if (get_token(str, &token))
                 return NULL;
-            if (write_token(buffer, token, list) < 0) {
-                free(token);
+            if (write_token(buffer, &token, list) < 0)
                 return NULL;
-            }
-            str += token->size;
-            free(token);
+            str += token.size;
         } else {
             if (write_to_buffer(buffer, str++, (size_t)1) < 0)
                 return NULL;
