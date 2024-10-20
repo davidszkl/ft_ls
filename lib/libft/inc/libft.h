@@ -14,8 +14,9 @@ int ft_free(void* ptr, int rval);
 int ft_free_tab(char** tab, int rval);
 
 // math
-size_t abs_value(long int nbr);
-int max(int a, int b);
+size_t ft_abs_value(long int nbr);
+int ft_max(int a, int b);
+int ft_pow(int base, int exponent);
 
 // memory
 char* ft_strdup(const char* str, int size);
@@ -29,8 +30,8 @@ void* ft_malloc_zero(size_t size);
 
 // strings
 char* ft_strtrim_one(const char* str, char c);
-int ft_strlen(const char* str);
-int numberlen(int nbr);
+size_t ft_strlen(const char* str);
+size_t ft_numberlen(int nbr);
 const char* ft_find_str(const char* str, const char* to_find);
 const char* ft_strchr(const char c, const char* str);
 int ft_strcmp(const char* str1, const char* str2);

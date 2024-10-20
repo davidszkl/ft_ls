@@ -45,7 +45,8 @@ tests: List[Tuple[bool, bool, List[str]]] = [
     (False, True, ["-R", "dir1", "dir2"]),
     (False, False, ["-recursive", "dir1", "dir2"]),
     (False, True, ["--recursive", "dir1", "dir2"]),
-    (False, True, ["--recursive", "symlinkdir"])
+    (False, True, ["--recursive", "symlinkdir"]),
+    (False, True, ["=Rl"])
 ]
 
 def normalize_expected(expected: str, long: bool, recursive: bool):

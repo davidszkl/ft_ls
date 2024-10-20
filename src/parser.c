@@ -40,7 +40,7 @@ static int handle_value_option(char *option, const char* option_value) {
 static int handle_option(const char* option_str) {
     // short option
     if (option_str[1] && option_str[1] != '-') {
-        for (int i = 1; i < ft_strlen(option_str); i++) {\
+        for (size_t i = 1; i < ft_strlen(option_str); i++) {\
             if (set_option_short(option_str[i]) != 0)
                 return ft_dprintf(STDERR_FILENO, "ls: invalid option -- '%c'\nTry 'ls --help' for more information.\n", option_str[i]);
         }

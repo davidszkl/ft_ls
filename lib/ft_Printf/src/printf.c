@@ -82,22 +82,19 @@ static int init_token(const char* token_str, token_s* token) {
     token->padding = ' '; // default value
     token_str++; // skip the '%'
     jump = _get_flags(token, token_str);
-    if (jump < 0) {
-        free(token);
+    if (jump < 0)
         return 1;
-    }
+
     token_str += jump;
     jump = _get_width(token, token_str);
-    if (jump < 0) {
-        free(token);
+    if (jump < 0)
         return 1;
-    }
+
     token_str += jump;
     jump = _get_specifier(token, token_str);
-    if (jump < 0) {
-        free(token);
+    if (jump < 0)
         return 1;
-    }
+
     token_str += jump;
     token->size = (token_str - tmp) / sizeof(char);
     return 0;
@@ -113,34 +110,99 @@ static int get_token(const char* str, token_s* token) {
     return 0;
 }
 
-static const char* get_str_to_write(char specifier, va_list list) {
-    char* str_to_write = NULL;
+char get_next_digit(int* nbr, int nbr_size, int backwards) {
+    int rval = 0;
+    if (*nbr < 10) {
+        rval = *nbr;
+        *nbr = 0;
+        return rval;
+    }
+    int pow = ft_pow(10, nbr_size - 1);
+    rval = backwards ? *nbr % 10 : *nbr / pow;
+    *nbr = backwards ? *nbr / 10 : *nbr - (rval * pow);
+    return rval + '0';
+}
+
+static const char* get_sized_str_nbr(int nbr, const token_s* token){
+    size_t strlen = ft_numberlen(nbr);
+    size_t width = strlen > token->width ? strlen : token->width;
+    char* sized_str = ft_malloc_zero((width + 1) * sizeof(char));
+    if (!sized_str)
+        return NULL;
+
+    char* rval = sized_str;
+    int step = token->flags && FLAG_JUSTIFY_LEFT ? 1 : -1;
+    int backwards = step == -1;
+    sized_str = token->flags && FLAG_JUSTIFY_LEFT ? sized_str : sized_str + width - 1;
+    while (strlen) {
+        *sized_str = get_next_digit(&nbr, (int)strlen, backwards);
+        sized_str += step;
+        strlen--;
+        width--;
+    }
+    while (width) {
+        *sized_str = token->padding;
+        sized_str += step;
+        width--;
+    }
+
+    return rval;
+}
+
+static const char* get_sized_str(const char* str, const char c, const token_s* token){
+    size_t strlen = c ? 1 : ft_strlen(str);
+    size_t width = strlen > token->width ? strlen : token->width;
+    char* sized_str = ft_malloc_zero((width + 1) * sizeof(char));
+    if (!sized_str)
+        return NULL;
+
+    char* rval = sized_str;
+    int step = token->flags && FLAG_JUSTIFY_LEFT ? 1 : -1;
+    const char* str_to_use = c ? &c : str;
+    const char* begin = token->flags && FLAG_JUSTIFY_LEFT ? str_to_use : str_to_use + strlen - 1;
+    sized_str = token->flags && FLAG_JUSTIFY_LEFT ? sized_str : sized_str + width - 1;
+    while (strlen) {
+        *sized_str = *begin;
+        begin += step;
+        sized_str += step;
+        strlen--;
+        width--;
+    }
+    while (width) {
+        *sized_str = token->padding;
+        sized_str += step;
+        width--;
+    }
+
+    return rval;
+}
+
+static const char* get_str_to_write(char specifier, va_list list, token_s* token) {
+    const char* str_to_write = NULL;
     if (specifier == 'c') {
         char c = va_arg(list, int);
-        str_to_write = malloc(sizeof(char) * (1 + 1));
+        str_to_write = get_sized_str(NULL, c, token);
         if (!str_to_write)
             return NULL;
-        str_to_write[0] = c;
-        str_to_write[1] = '\0';
     }
     else if (specifier == '%') {
-        str_to_write = malloc(sizeof(char) * (1 + 1));
+        char c = '%';
+        str_to_write = get_sized_str(NULL, c, token);
         if (!str_to_write)
             return NULL;
-        str_to_write[0] = '%';
-        str_to_write[1] = '\0';
     }
     else if (specifier == 's') {
         char* str = va_arg(list, char*);
         if (!str)
-            return ft_strdup("(null)", -1);
-        str_to_write = ft_strdup(str, -1);
+            str = "(null)";
+        str_to_write = get_sized_str(str, 0, token);
         if (!str_to_write)
             return NULL;
     }
     else if (specifier == 'd' || specifier == 'i') {
         int str = va_arg(list, int);
-        str_to_write = ft_itoa(str);
+        //1,389,6,4096
+        str_to_write = get_sized_str_nbr(str, token);
         if (!str_to_write)
             return NULL;
     }
@@ -178,49 +240,17 @@ static int write_to_buffer(buffer_s* buffer, const char* str, size_t len) {
     return 0;
 }
 
-static const char* get_sized_str(const char* str, const token_s* token){
-    size_t strlen = ft_strlen(str);
-    size_t width = strlen > token->width ? strlen : token->width;
-    char* sized_str = malloc((width + 1) * sizeof(char));
-    if (!sized_str)
-        return NULL;
-    bzero(sized_str, width + 1);
-
-    char* rval = sized_str;
-    int step = token->flags && FLAG_JUSTIFY_LEFT ? 1 : -1;
-    const char* begin = token->flags && FLAG_JUSTIFY_LEFT ? str : str + strlen - 1;
-    sized_str = token->flags && FLAG_JUSTIFY_LEFT ? sized_str : sized_str + width - 1;
-    while (strlen) {
-        *sized_str = *begin;
-        begin += step;
-        sized_str += step;
-        strlen--;
-        width--;
-    }
-    while (width) {
-        *sized_str = token->padding;
-        sized_str += step;
-        width--;
-    }
-
-    return rval;
-}
-
 static int write_token(buffer_s* buffer, token_s* token, va_list list) {
-    const char *str_to_write = get_str_to_write(token->specifier, list);
+    const char *str_to_write = get_str_to_write(token->specifier, list, token);
     if (!str_to_write)
         return -1;
-    const char *sized_str = get_sized_str(str_to_write, token);
-    free((char *)str_to_write);
-    if (!sized_str)
-        return -1;
-    size_t len = (size_t)ft_strlen(sized_str);
     
-    if (write_to_buffer(buffer, sized_str, len) < 0) {
-        free((char *)sized_str);
+    size_t len = (size_t)ft_strlen(str_to_write);
+    if (write_to_buffer(buffer, str_to_write, len) < 0) {
+        free((char *)str_to_write);
         return -1;
     }
-    free((char *)sized_str);
+    free((char *)str_to_write);
     return len;
 }
 

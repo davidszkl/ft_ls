@@ -200,15 +200,14 @@ static int set_max_widths(int* widths, output_long_s* output_info) {
     for (size_t i = 0; i < output_info->count; i++) {
         if (output_info[i].error)
             continue;
-        widths[1] = max(widths[1], numberlen(output_info[i].links));
-        widths[2] = max(widths[2], ft_strlen(output_info[i].user));
-        widths[3] = max(widths[3], ft_strlen(output_info[i].group));
-        widths[4] = max(widths[4], numberlen(output_info[i].size));
+        widths[1] = ft_max(widths[1], ft_numberlen(output_info[i].links));
+        widths[2] = ft_max(widths[2], ft_strlen(output_info[i].user));
+        widths[3] = ft_max(widths[3], ft_strlen(output_info[i].group));
+        widths[4] = ft_max(widths[4], ft_numberlen(output_info[i].size));
     }
     return 0;
 }
 
-#include <stdio.h>
 static int print_output_long(output_long_s* output_info, int* widths, size_t total_blocks) {
     ft_dprintf(STDOUT_FILENO, "total %d\n", total_blocks);
     

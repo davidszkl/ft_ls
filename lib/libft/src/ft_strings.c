@@ -29,18 +29,16 @@ char* ft_strtrim_one(const char* str, char c)
     return rval;
 }
 
-int ft_strlen(const char* str)
+size_t ft_strlen(const char* str)
 {
-    int len = 0;
-    while (*str++) {
-        len++;
-    }
-    return len;
+    const char* begin = str;
+    while (*++str) {}
+    return (size_t)(str - begin);
 }
 
-int numberlen(int nbr)
+size_t ft_numberlen(int nbr)
 {
-    int rval = 1;
+    size_t rval = 1;
     while (nbr >= 10) {
         rval++;
         nbr /= 10;
