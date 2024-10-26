@@ -123,7 +123,7 @@ actual:   {diff_line}\n"))
         idx += 1
         return diff
 
-def run_test(long: bool, recursive: bool, args: List[str]) -> None:
+def run_test(long: bool, recursive: bool, args: List[str], idx: int) -> None:
     command = ' '.join(t for t in args)
 
     expected_rval = subprocess.run(["ls", "-1", *args], cwd="/home/dszklarz/ft_ls/test", text=True, capture_output=True)
@@ -136,9 +136,9 @@ def run_test(long: bool, recursive: bool, args: List[str]) -> None:
 
     leak_found = check_memory_leaks(args)
     if actual == expected and actual_err == expected_err:
-        print(f"{command:{max_size}}|   {OK}      {KO if leak_found else OK}   |")
+        print(f"{'(' + str(idx) + ')':4} {command:{max_size}}|   {OK}      {KO if leak_found else OK}   |")
     else:
-        print(f"{command:{max_size}}|   {KO}      {KO if leak_found else OK}   |")
+        print(f"{'(' + str(idx) + ')':4} {command:{max_size}}|   {KO}      {KO if leak_found else OK}   |")
         diff = make_diff(expected, actual)
         for line, diff_line in diff:
             print(diff_line)
@@ -197,13 +197,13 @@ if __name__ == "__main__":
 
     clean_test_tree()
     make_test_tree()
-    print(f"{'=' * (max_size - 1)}={'=' * 16}=╗")
-    print(f"{'test':{max_size - 1}} | output  memory ║")
-    print(f"{'=' * (max_size - 1)}={'=' * 16}=╝")
+    print(f"{'=' * (max_size + 5 - 1)}={'=' * 16}=╗")
+    print(f"{'test':{max_size + 5 - 1}} | output  memory ║")
+    print(f"{'=' * (max_size + 5 - 1)}={'=' * 16}=╝")
     errors = []
 
     with concurrent.futures.ThreadPoolExecutor() as executor:
-        futures = [executor.submit(run_test, long, recursive, args) for long, recursive, args in tests]
+        futures = [executor.submit(run_test, long, recursive, args, idx) for idx, (long, recursive, args) in enumerate(tests)]
         
         for future in concurrent.futures.as_completed(futures):
             try:
@@ -211,6 +211,6 @@ if __name__ == "__main__":
             except Exception as e:
                 errors.append(str(e))
 
-    print(f"{'=' * (max_size - 1)}={'=' * 16}==")
+    print(f"{'=' * (max_size + 5 - 1)}={'=' * 16}==")
     if errors:
         print("\n".join(errors))

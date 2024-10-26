@@ -212,7 +212,7 @@ static int print_output_long(output_long_s* output_info, int* widths, size_t tot
     ft_dprintf(STDOUT_FILENO, "total %d\n", total_blocks);
     
     char* format_string = NULL;
-    ft_sprintf(&format_string, "%%-%ds %%-%dd %%-%ds %%-%ds %%%dd %%%ds %%-s\n", widths[0], widths[1], widths[2], widths[3], widths[4], widths[5]);
+    ft_sprintf(&format_string, "%%-%ds %%-%dd %%-%ds %%-%ds %%-%dd %%%ds %%-s\n", widths[0], widths[1], widths[2], widths[3], widths[4], widths[5]);
     for (size_t i = 0; i < output_info->count; i++) {
         if (output_info[i].error) {
             if (ft_dprintf(STDERR_FILENO, "%c%s\n", output_info[i].perms[0], output_info[i].error) == -1)

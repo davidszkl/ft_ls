@@ -113,7 +113,7 @@ static int get_token(const char* str, token_s* token) {
 char get_next_digit(int* nbr, int nbr_size, int backwards) {
     int rval = 0;
     if (*nbr < 10) {
-        rval = *nbr;
+        rval = *nbr + '0';
         *nbr = 0;
         return rval;
     }
@@ -131,9 +131,9 @@ static const char* get_sized_str_nbr(int nbr, const token_s* token){
         return NULL;
 
     char* rval = sized_str;
-    int step = token->flags && FLAG_JUSTIFY_LEFT ? 1 : -1;
+    int step = token->flags && FLAG_JUSTIFY_LEFT ? -1 : 1;
     int backwards = step == -1;
-    sized_str = token->flags && FLAG_JUSTIFY_LEFT ? sized_str : sized_str + width - 1;
+    sized_str = token->flags && FLAG_JUSTIFY_LEFT ? sized_str + width - 1 : sized_str;
     while (strlen) {
         *sized_str = get_next_digit(&nbr, (int)strlen, backwards);
         sized_str += step;
@@ -278,7 +278,7 @@ static buffer_s* ft_printf_helper(const char*str, va_list list) {
     buffer_s* buffer = init_buffer();
 	buffer->bytes = format_string(str, list, buffer);
     if (!buffer->bytes) {
-        free_buffer(buffer);
+        free(buffer);
         return NULL;
     }
     return buffer;
@@ -289,6 +289,10 @@ int	ft_printf(const char *format, ...) {
     va_start(list, format);
 	buffer_s* buffer = ft_printf_helper(format, list);
     va_end(list);
+    if (!buffer || !buffer->bytes) {
+        free(buffer);
+        return 1;
+    }
     write(STDOUT_FILENO, buffer->bytes, buffer->size);
     int len = buffer->size;
     free_buffer(buffer);
@@ -300,6 +304,10 @@ int ft_sprintf(char** str, const char* format, ...) {
     va_start(list, format);
     buffer_s* buffer = ft_printf_helper(format, list);
     va_end(list);
+    if (!buffer || !buffer->bytes) {
+        free(buffer);
+        return 1;
+    }
     *str = ft_strdup(buffer->bytes, -1);
     int len = buffer->size;
     free_buffer(buffer);
@@ -311,6 +319,10 @@ int ft_dprintf(int fd, const char* format, ...) {
     va_start(list, format);
 	buffer_s* buffer = ft_printf_helper(format, list);
     va_end(list);
+    if (!buffer || !buffer->bytes) {
+        free(buffer);
+        return 1;
+    }
     write(fd, buffer->bytes, buffer->size);
     int len = buffer->size;
     free_buffer(buffer);
