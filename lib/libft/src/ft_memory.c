@@ -88,6 +88,19 @@ void* ft_memcpy(void *dst, const void *src, size_t n)
     return dst;
 }
 
+void* ft_memcpy_any(void *dst, const void *src, size_t n)
+{
+    if (!dst || !src)
+        return NULL;
+    char* dest = (char*)dst;
+    char* source = (char*)src;
+    while (n--) {
+        *dest++ = *source++;
+    }
+
+    return dst;
+}
+
 void* ft_malloc_zero(size_t size)
 {
     void* rval = malloc(size);

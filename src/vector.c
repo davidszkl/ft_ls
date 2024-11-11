@@ -20,12 +20,12 @@ vector_s* vector_make(size_t capacity) {
 
 static int ft_realloc(vector_s* vector) {
     size_t old_capacity = vector->capacity;
-    void* old_content = vector->content;
-    void* new = ft_malloc_zero(sizeof(dirent_stat_s) * old_capacity * 2);
+    dirent_stat_s* old_content = vector->content;
+    dirent_stat_s* new = ft_malloc_zero(sizeof(dirent_stat_s) * old_capacity * 2);
     if (!new) {
         return 1;
     }
-    ft_memcpy(new, old_content, (size_t)((sizeof(dirent_stat_s) * vector->size) / sizeof(char)));
+    ft_memcpy_any(new, old_content, (size_t)((sizeof(dirent_stat_s) * vector->size) / sizeof(char)));
     vector->content = new;
     vector->capacity *= 2;
 
@@ -36,10 +36,6 @@ vector_s* vector_push(vector_s* vector, struct dirent* elem, const char* parent_
     if (vector->size == vector->capacity)
         if (ft_realloc(vector))
             return NULL;
-
-    // dirent_stat_s el = ft_malloc_zero(sizeof(dirent_stat_s));
-    // if (!el)
-    //     return NULL;
     dirent_stat_s el = {0};
 
     const char* fullpath = ft_strjoin_path(parent_path, elem->d_name);

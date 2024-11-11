@@ -26,6 +26,7 @@ char* ft_strjoin_path(const char* str1, const char* str2);
 char* ft_substr(const char* str, size_t begin, size_t end);
 void* ft_memset(void* mem, int c, size_t n);
 void* ft_memcpy(void *dst, const void *src, size_t n);
+void* ft_memcpy_any(void *dst, const void *src, size_t n);
 void* ft_malloc_zero(size_t size);
 
 // strings
