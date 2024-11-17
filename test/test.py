@@ -126,11 +126,11 @@ actual:   {diff_line}\n"))
 def run_test(long: bool, recursive: bool, args: List[str], idx: int) -> None:
     command = ' '.join(t for t in args)
 
-    expected_rval = subprocess.run(["ls", "-1", *args], cwd="/home/dszklarz/ft_ls/test", text=True, capture_output=True)
+    expected_rval = subprocess.run(["ls", "-1", *args], cwd=test_dir, text=True, capture_output=True)
     expected = normalize_expected(expected_rval.stdout, long, recursive)
     expected_err = normalize_expected_error(expected_rval.stderr, long, recursive)
     
-    actual_rval = subprocess.run(["/home/dszklarz/ft_ls/ft_ls", *args], cwd="/home/dszklarz/ft_ls/test", text=True, capture_output=True)
+    actual_rval = subprocess.run([os.path.join(ls_dir, "ft_ls"), *args], cwd=test_dir, text=True, capture_output=True)
     actual = normalize_actual(actual_rval.stdout)
     actual_err = normalize_actual(actual_rval.stderr)
 
@@ -140,17 +140,17 @@ def run_test(long: bool, recursive: bool, args: List[str], idx: int) -> None:
     else:
         print(f"{'(' + str(idx) + ')':4} {command:{max_size}}|   {KO}      {KO if leak_found else OK}   |")
         diff = make_diff(expected, actual)
-        for line, diff_line in diff:
+        for _, diff_line in diff:
             print(diff_line)
 
 def check_memory_leaks(args):
-    actual_rval = subprocess.run(["/usr/bin/valgrind", "/home/dszklarz/ft_ls/ft_ls", *args], cwd="/home/dszklarz/ft_ls/test", text=True, capture_output=True)
+    actual_rval = subprocess.run(["/usr/bin/valgrind", os.path.join(ls_dir, "ft_ls"), *args], cwd=test_dir, text=True, capture_output=True)
     pattern = r"(definitely lost|indirectly lost|possibly lost|still reachable): (\d+) bytes in (\d+) blocks"
     matches = re.findall(pattern, actual_rval.stderr)
     return any(int(bytes_lost) > 0 or int(blocks_lost) > 0 for _, bytes_lost, blocks_lost in matches) 
 
 def clean_test_tree():
-    for item in os.listdir(os.path.dirname(os.path.abspath(__file__))):
+    for item in os.listdir(test_dir):
         if item in ("test.json", "test.py"):
             continue
         if os.path.isdir(item):
@@ -179,15 +179,17 @@ def make_test_tree():
                 continue
             recursive_make_tree(directory, pathname)
 
-    with open (os.path.join(os.path.dirname(os.path.abspath(__file__)), "test.json"), "r") as file:
+    with open (os.path.join(test_dir, "test.json"), "r") as file:
         tree = json.load(file)
-        recursive_make_tree(tree, os.path.dirname(os.path.abspath(__file__)))
+        recursive_make_tree(tree, test_dir)
 
     if symlinks:
         for src, dst in symlinks:
             os.symlink(src, dst)
 
 if __name__ == "__main__":
+    test_dir = os.path.dirname(os.path.abspath(__file__))
+    ls_dir = os.path.split(test_dir)[0]
     if len(sys.argv) > 1:
         if (sys.argv[1] == "clean"):
             clean_test_tree()

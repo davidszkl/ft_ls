@@ -150,7 +150,7 @@ static output_long_s* create_output_long(dirent_stat_s* stat, output_long_s* out
         return NULL;
     }
 
-    if (!group_string(stat->stat.st_uid, output_long->group)) {
+    if (!group_string(stat->stat.st_gid, output_long->group)) {
         ft_free_output_long(output_long, 1);
         return NULL;
     }
